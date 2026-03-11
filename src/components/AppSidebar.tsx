@@ -3,10 +3,8 @@ import { cn } from "@/lib/utils";
 import { LayoutDashboard, Users, Upload, Settings, BarChart3 } from "lucide-react";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/suppliers", label: "Suppliers", icon: Users },
-  { to: "/upload", label: "Data Ingestion", icon: Upload },
-  { to: "/metrics", label: "Metrics", icon: Settings },
+  { to: "/suppliers", label: "Vendor Performance Overview", icon: Users },
+  { to: "/metrics", label: "Change Evaluation Metric", icon: Settings },
 ];
 
 export function AppSidebar() {
