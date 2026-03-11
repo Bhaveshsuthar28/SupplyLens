@@ -1,11 +1,45 @@
 import { useParams, Link } from "react-router-dom";
-import { MOCK_SUPPLIERS, getGradeLabel } from "@/lib/supplierData";
+import { MOCK_SUPPLIERS, getGradeLabel, getGrade } from "@/lib/supplierData";
 import { GradeBadge } from "@/components/GradeBadge";
 import { TrendIndicator } from "@/components/TrendIndicator";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mail, CheckCircle, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart,
 } from "recharts";
+
+const gradeChartColor: Record<string, string> = {
+  A: 'hsl(142, 72%, 36%)',
+  B: 'hsl(48, 100%, 50%)',
+  C: 'hsl(30, 100%, 50%)',
+  D: 'hsl(350, 80%, 50%)',
+};
+
+const gradeChartColorFill: Record<string, string> = {
+  A: 'hsl(142, 72%, 36%, 0.2)',
+  B: 'hsl(48, 100%, 50%, 0.2)',
+  C: 'hsl(30, 100%, 50%, 0.2)',
+  D: 'hsl(350, 80%, 50%, 0.2)',
+};
+
+function getMetricStatus(key: string, value: number): { icon: React.ReactNode; label: string; color: string } {
+  if (key === 'otd') {
+    if (value >= 95) return { icon: <CheckCircle className="w-4 h-4" />, label: `▲ ${(value - 90).toFixed(1)}%`, color: 'text-success' };
+    if (value >= 85) return { icon: <TrendingUp className="w-4 h-4" />, label: 'Acceptable', color: 'text-warning' };
+    return { icon: <TrendingDown className="w-4 h-4" />, label: 'Below Target', color: 'text-destructive' };
+  }
+  if (key === 'fillRate') {
+    if (value >= 95) return { icon: <CheckCircle className="w-4 h-4" />, label: 'Stable', color: 'text-success' };
+    if (value >= 85) return { icon: <TrendingUp className="w-4 h-4" />, label: 'Acceptable', color: 'text-warning' };
+    return { icon: <AlertTriangle className="w-4 h-4" />, label: 'Low', color: 'text-destructive' };
+  }
+  if (key === 'rejectRate') {
+    if (value <= 1) return { icon: <CheckCircle className="w-4 h-4" />, label: 'Good', color: 'text-success' };
+    if (value <= 3) return { icon: <TrendingUp className="w-4 h-4" />, label: 'Monitor', color: 'text-warning' };
+    return { icon: <AlertTriangle className="w-4 h-4" />, label: 'Critical Fail', color: 'text-destructive' };
+  }
+  return { icon: null, label: '', color: '' };
+}
 
 function getRecommendations(supplier: typeof MOCK_SUPPLIERS[0]): string[] {
   const recs: string[] = [];
@@ -22,6 +56,7 @@ function getRecommendations(supplier: typeof MOCK_SUPPLIERS[0]): string[] {
 export default function SupplierScorecard() {
   const { id } = useParams<{ id: string }>();
   const supplier = MOCK_SUPPLIERS.find((s) => s.id === id);
+  const { toast } = useToast();
 
   if (!supplier) {
     return (
@@ -34,71 +69,147 @@ export default function SupplierScorecard() {
 
   const chartData = [...supplier.weeklyScores].reverse();
   const recommendations = getRecommendations(supplier);
+  const chartColor = gradeChartColor[supplier.grade] || gradeChartColor.B;
+  const chartFill = gradeChartColorFill[supplier.grade] || gradeChartColorFill.B;
+  const showSendMail = supplier.grade === 'D' || supplier.grade === 'C';
+
+  const handleSendMail = () => {
+    toast({
+      title: "Email Sent Successfully",
+      description: `Performance alert email sent for ${supplier.name} to the procurement team.`,
+    });
+  };
+
+  const otdStatus = getMetricStatus('otd', supplier.otd);
+  const fillStatus = getMetricStatus('fillRate', supplier.fillRate);
+  const rejectStatus = getMetricStatus('rejectRate', supplier.rejectRate);
 
   return (
-    <div className="p-8 max-w-5xl">
-      <Link to="/suppliers" className="inline-flex items-center gap-1 text-sm text-primary hover:underline mb-6">
-        <ArrowLeft className="w-4 h-4" /> Back to Overview
-      </Link>
+    <div className="p-8 max-w-6xl">
+      {/* Top bar */}
+      <div className="flex items-center justify-between mb-6">
+        <Link to="/suppliers" className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded hover:opacity-90 transition-opacity">
+          <ArrowLeft className="w-4 h-4" /> Back to Overview
+        </Link>
+        {showSendMail && (
+          <button
+            onClick={handleSendMail}
+            className="inline-flex items-center gap-2 px-5 py-2 bg-destructive text-destructive-foreground text-sm font-medium rounded hover:opacity-90 transition-opacity"
+          >
+            <Mail className="w-4 h-4" /> Send Mail
+          </button>
+        )}
+      </div>
 
-      {/* Header */}
-      <div className="border border-border p-6 shadow-crisp mb-8">
-        <div className="flex items-start gap-4">
-          <GradeBadge grade={supplier.grade} size="lg" />
+      {/* Header Card */}
+      <div className="bg-sidebar text-sidebar-foreground rounded-lg p-6 mb-6">
+        <div className="flex items-center gap-5">
+          <div className="flex flex-col items-center">
+            <GradeBadge grade={supplier.grade} size="lg" />
+            <span className="text-xs mt-1 text-sidebar-foreground/70">{getGradeLabel(supplier.grade)}</span>
+          </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-foreground">{supplier.name}</h1>
-            <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground font-mono">
-              <span>ID: {supplier.id}</span>
-              <span>Category: {supplier.category}</span>
-              <span>Grade: {supplier.grade} ({getGradeLabel(supplier.grade)})</span>
+            <h1 className="text-2xl font-bold">{supplier.name}</h1>
+            <div className="flex items-center gap-3 mt-1 text-sm text-sidebar-foreground/70 font-mono">
+              <span>-{supplier.id.replace('S', '')}</span>
+              <span>Supplier: {supplier.category}</span>
             </div>
           </div>
-          <TrendIndicator trend={supplier.trend} />
+          <div className="text-right space-y-1 text-sm">
+            <div className="text-sidebar-foreground/70">Supplier ID: <span className="font-mono text-sidebar-foreground">{supplier.id}</span></div>
+            <div className="text-sidebar-foreground/70">Category: <span className="text-sidebar-foreground">{supplier.category}</span></div>
+            <div className="text-sidebar-foreground/70">Overall Grade: 
+              <span className={`ml-2 inline-flex items-center gap-1 px-3 py-1 rounded text-sm font-bold ${
+                supplier.grade === 'A' ? 'bg-success text-success-foreground' :
+                supplier.grade === 'B' ? 'bg-primary text-primary-foreground' :
+                supplier.grade === 'C' ? 'bg-warning text-warning-foreground' :
+                'bg-destructive text-destructive-foreground'
+              }`}>
+                {supplier.grade} ({getGradeLabel(supplier.grade)})
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Metrics + Chart */}
-      <div className="grid grid-cols-2 gap-8 mb-8">
-        <div className="border border-border p-6 shadow-crisp space-y-4">
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <span className="text-sm text-muted-foreground">On-Time Delivery</span>
-            <span className="font-mono font-bold text-foreground">{supplier.otd}%</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Performance Metrics */}
+        <div className="border border-border rounded-lg p-6 bg-card space-y-0">
+          {/* OTD */}
+          <div className="flex items-center justify-between border-b border-border py-4">
+            <span className="font-semibold text-foreground">On-Time Delivery</span>
+            <div className="flex items-center gap-3">
+              <span className={`${otdStatus.color}`}>{otdStatus.icon}</span>
+              <span className="font-mono font-bold text-xl text-foreground">{supplier.otd}%</span>
+              <span className={`text-sm font-medium ${otdStatus.color}`}>{otdStatus.label}</span>
+            </div>
           </div>
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <span className="text-sm text-muted-foreground">Fill Rate</span>
-            <span className="font-mono font-bold text-foreground">{supplier.fillRate}%</span>
+          {/* Fill Rate */}
+          <div className="flex items-center justify-between border-b border-border py-4">
+            <span className="font-semibold text-foreground">Fill Rate</span>
+            <div className="flex items-center gap-3">
+              <span className={`${fillStatus.color}`}>{fillStatus.icon}</span>
+              <span className="font-mono font-bold text-xl text-foreground">{supplier.fillRate}%</span>
+              <span className={`text-sm font-medium ${fillStatus.color}`}>{fillStatus.label}</span>
+            </div>
           </div>
-          <div className="flex items-center justify-between border-b border-border pb-3">
-            <span className="text-sm text-muted-foreground">Quality Rejection</span>
-            <span className={`font-mono font-bold ${supplier.rejectRate > 3 ? 'text-destructive' : 'text-foreground'}`}>{supplier.rejectRate}%</span>
+          {/* Quality Rejection */}
+          <div className="flex items-center justify-between border-b border-border py-4">
+            <span className="font-semibold text-foreground">Quality Rejection</span>
+            <div className="flex items-center gap-3">
+              <span className={`${rejectStatus.color}`}>{rejectStatus.icon}</span>
+              <span className="font-mono font-bold text-xl text-foreground">{supplier.rejectRate}%</span>
+              <span className={`text-sm font-medium ${rejectStatus.color}`}>{rejectStatus.label}</span>
+            </div>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Composite Score</span>
-            <span className="font-mono font-bold text-foreground text-lg">{supplier.compositeScore} ({supplier.grade})</span>
+          {/* Composite */}
+          <div className="flex items-center justify-between pt-4">
+            <span className="font-semibold text-foreground">Overall Composite Score</span>
+            <div className="flex items-center gap-2">
+              <span className={`font-mono font-bold text-2xl ${
+                supplier.grade === 'D' ? 'text-destructive' :
+                supplier.grade === 'C' ? 'text-warning' :
+                supplier.grade === 'B' ? 'text-primary' : 'text-success'
+              }`}>
+                {supplier.compositeScore}({supplier.grade})
+              </span>
+              <span className={`text-sm ${
+                supplier.grade === 'D' ? 'text-destructive' :
+                supplier.grade === 'C' ? 'text-warning' : 'text-muted-foreground'
+              }`}>{getGradeLabel(supplier.grade)}</span>
+            </div>
           </div>
         </div>
 
-        <div className="border border-border p-6 shadow-crisp">
-          <h3 className="text-sm font-sans font-semibold text-foreground mb-4">Composite Score Trend</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(210 14% 91%)" />
+        {/* Chart */}
+        <div className="border border-border rounded-lg p-6 bg-card">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Composite Score Trend</h3>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={chartColor} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={chartColor} stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(210, 14%, 89%)" />
               <XAxis dataKey="week" tick={{ fontSize: 11, fontFamily: "'IBM Plex Mono'" }} />
               <YAxis domain={[50, 100]} tick={{ fontSize: 11, fontFamily: "'IBM Plex Mono'" }} />
-              <Tooltip contentStyle={{ fontFamily: "'IBM Plex Mono'", fontSize: 12 }} />
-              <Line type="monotone" dataKey="composite" stroke="hsl(220 100% 50%)" strokeWidth={2} dot={{ r: 4 }} name="Score" />
-            </LineChart>
+              <Tooltip contentStyle={{ fontFamily: "'IBM Plex Mono'", fontSize: 12, borderRadius: 8 }} />
+              <Area type="monotone" dataKey="composite" stroke={chartColor} strokeWidth={2.5} fill="url(#scoreGradient)" dot={{ r: 5, fill: chartColor, stroke: '#fff', strokeWidth: 2 }} name="Score" />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Weekly Breakdown */}
-      <div className="border border-border shadow-crisp mb-8 overflow-hidden">
+      {/* Weekly Breakdown Table */}
+      <div className="border border-border rounded-lg overflow-hidden mb-6">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-card border-b border-border">
               {['Metric', ...chartData.map(d => d.week)].map((h) => (
-                <th key={h} className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
+                <th key={h} className="text-left px-5 py-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
               ))}
             </tr>
           </thead>
@@ -110,19 +221,24 @@ export default function SupplierScorecard() {
                 rejectRate: 'Quality Rejection (QR %)',
                 composite: 'Composite Score',
               };
+              const isComposite = key === 'composite';
               return (
-                <tr key={key} className="border-b border-border">
-                  <td className="px-4 py-3 font-sans font-medium text-foreground">{labels[key]}</td>
+                <tr key={key} className={`border-b border-border ${isComposite ? 'bg-muted/30 font-semibold' : ''}`}>
+                  <td className="px-5 py-3 font-medium text-foreground">{labels[key]}</td>
                   {chartData.map((d, i) => {
                     const val = d[key as keyof typeof d];
-                    const isComposite = key === 'composite';
                     const numVal = typeof val === 'number' ? val : 0;
                     let textColor = 'text-foreground';
-                    if (isComposite && numVal < 70) textColor = 'text-destructive';
-                    else if (isComposite && numVal < 85) textColor = 'text-warning';
+                    if (isComposite) {
+                      const g = getGrade(numVal);
+                      if (g === 'D') textColor = 'text-destructive font-bold';
+                      else if (g === 'C') textColor = 'text-warning font-bold';
+                      else if (g === 'B') textColor = 'text-primary font-bold';
+                      else textColor = 'text-success font-bold';
+                    }
                     return (
-                      <td key={i} className={`px-4 py-3 font-mono ${textColor}`}>
-                        {isComposite ? `${val}` : `${val}%`}
+                      <td key={i} className={`px-5 py-3 font-mono ${textColor}`}>
+                        {isComposite ? `${val} (${getGrade(numVal)})` : `${val}%`}
                       </td>
                     );
                   })}
@@ -133,9 +249,26 @@ export default function SupplierScorecard() {
         </table>
       </div>
 
+      {/* Grade Legend */}
+      <div className="border border-border rounded-lg p-5 mb-6 bg-card">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {[
+            { grade: 'A', range: '95–100', label: 'Strategic Partner' },
+            { grade: 'B', range: '85–94', label: 'Reliable' },
+            { grade: 'C', range: '70–84', label: 'Needs Intervention' },
+            { grade: 'D', range: '< 70', label: 'Critical Risk / Replace' },
+          ].map(({ grade: g, range, label }) => (
+            <div key={g} className="flex items-center gap-2 text-sm">
+              <GradeBadge grade={g} size="sm" />
+              <span className="text-muted-foreground">{g}: {range} ({label})</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Recommendations */}
-      <div className="border border-border p-6 shadow-crisp">
-        <h3 className="font-sans font-semibold text-foreground mb-4">System Recommendations</h3>
+      <div className="border border-border rounded-lg p-6 bg-card">
+        <h3 className="font-semibold text-foreground mb-4">System Recommendations</h3>
         <ul className="space-y-2">
           {recommendations.map((r, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
