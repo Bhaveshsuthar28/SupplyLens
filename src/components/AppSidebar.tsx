@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Users, Upload, Settings, BarChart3 } from "lucide-react";
+import { BarChart3, Users, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/suppliers", label: "Vendor Performance Overview", icon: Users },
