@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BarChart3, TrendingUp, Package, ShieldAlert, ClipboardCheck, Truck, Settings, LogOut, User } from "lucide-react";
+import { BarChart3, TrendingUp, Package, ShieldAlert, ClipboardCheck, Truck, Settings, LogOut, User, LayoutDashboard } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import heroDashboard from "@/assets/hero-dashboard.png";
