@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BarChart3, TrendingUp, Package, ShieldAlert, ClipboardCheck, Truck, LayoutDashboard, Upload, Settings, LogOut, User } from "lucide-react";
+import { BarChart3, TrendingUp, Package, ShieldAlert, ClipboardCheck, Truck, Settings, LogOut, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import heroDashboard from "@/assets/hero-dashboard.png";
@@ -40,25 +40,15 @@ export default function Index() {
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem asChild>
-                <Link to="/dashboard" className="flex items-center gap-2 cursor-pointer">
-                  <LayoutDashboard className="h-4 w-4" /> Dashboard
-                </Link>
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem asChild>
                 <Link to="/suppliers" className="flex items-center gap-2 cursor-pointer">
-                  <Package className="h-4 w-4" /> Suppliers
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/upload" className="flex items-center gap-2 cursor-pointer">
-                  <Upload className="h-4 w-4" /> Upload Data
+                  <Package className="h-4 w-4" /> Vendor Performance Overview
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/metrics" className="flex items-center gap-2 cursor-pointer">
-                  <Settings className="h-4 w-4" /> Metrics
+                  <Settings className="h-4 w-4" /> Change Evaluation Metric
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
