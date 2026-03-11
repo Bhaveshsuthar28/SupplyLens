@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
-import { BarChart3, TrendingUp, Package, ShieldAlert, ClipboardCheck, Truck } from "lucide-react";
+import { BarChart3, TrendingUp, Package, ShieldAlert, ClipboardCheck, Truck, LayoutDashboard, Upload, Settings, LogOut, User } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import heroDashboard from "@/assets/hero-dashboard.png";
 
 const features = [
@@ -28,16 +30,43 @@ export default function Index() {
             <BarChart3 className="w-6 h-6 text-primary" />
             <span className="font-sans font-bold text-lg text-foreground">SupplyLens</span>
           </Link>
-          <nav className="flex items-center gap-6">
-            <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-foreground font-sans transition-colors">Dashboard</Link>
-            <Link to="/upload" className="text-sm text-muted-foreground hover:text-foreground font-sans transition-colors">Upload Data</Link>
-            <Link
-              to="/dashboard"
-              className="inline-flex items-center justify-center h-9 px-4 bg-primary text-primary-foreground text-sm font-sans font-medium rounded hover:opacity-90 transition-opacity"
-            >
-              Get Started
-            </Link>
-          </nav>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="rounded-full focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                <Avatar className="h-9 w-9 cursor-pointer">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-sm font-semibold">
+                    <User className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link to="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                  <LayoutDashboard className="h-4 w-4" /> Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/suppliers" className="flex items-center gap-2 cursor-pointer">
+                  <Package className="h-4 w-4" /> Suppliers
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/upload" className="flex items-center gap-2 cursor-pointer">
+                  <Upload className="h-4 w-4" /> Upload Data
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/metrics" className="flex items-center gap-2 cursor-pointer">
+                  <Settings className="h-4 w-4" /> Metrics
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="flex items-center gap-2 cursor-pointer text-destructive">
+                <LogOut className="h-4 w-4" /> Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
