@@ -42,6 +42,11 @@ export default function Index() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem asChild>
+                <Link to="/dashboard" className="flex items-center gap-2 cursor-pointer">
+                  <LayoutDashboard className="h-4 w-4" /> Analytics Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link to="/suppliers" className="flex items-center gap-2 cursor-pointer">
                   <Package className="h-4 w-4" /> Vendor Performance Overview
                 </Link>
