@@ -204,7 +204,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,11%,25%)" />
                   <XAxis dataKey="range" tick={chartStyle} stroke="hsl(210,14%,50%)" />
                   <YAxis tick={chartStyle} stroke="hsl(210,14%,50%)" />
-                  <Tooltip contentStyle={{ background: "hsl(210,11%,15%)", border: "1px solid hsl(210,11%,25%)", color: "#fff", fontFamily: "'IBM Plex Mono'", fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
                   <Bar dataKey="count" name="Suppliers">
                     {rejectionDist.map((entry, i) => (
                       <Cell key={i} fill={entry.color} />
@@ -220,7 +220,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,11%,25%)" />
                   <XAxis dataKey="range" tick={chartStyle} stroke="hsl(210,14%,50%)" />
                   <YAxis tick={chartStyle} stroke="hsl(210,14%,50%)" />
-                  <Tooltip contentStyle={{ background: "hsl(210,11%,15%)", border: "1px solid hsl(210,11%,25%)", color: "#fff", fontFamily: "'IBM Plex Mono'", fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
                   <Bar dataKey="count" name="Suppliers">
                     {otdDist.map((entry, i) => (
                       <Cell key={i} fill={entry.color} />
@@ -236,7 +236,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,11%,25%)" />
                   <XAxis dataKey="week" tick={chartStyle} stroke="hsl(210,14%,50%)" />
                   <YAxis domain={["auto", "auto"]} tick={chartStyle} stroke="hsl(210,14%,50%)" />
-                  <Tooltip contentStyle={{ background: "hsl(210,11%,15%)", border: "1px solid hsl(210,11%,25%)", color: "#fff", fontFamily: "'IBM Plex Mono'", fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
                   <Line type="monotone" dataKey="avg" stroke="hsl(45,100%,51%)" strokeWidth={2} dot={{ r: 4, fill: "hsl(45,100%,51%)" }} name="Avg Score" />
                 </LineChart>
               </ResponsiveContainer>
@@ -254,7 +254,7 @@ export default function Dashboard() {
                         <Cell key={i} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ background: "hsl(210,11%,15%)", border: "1px solid hsl(210,11%,25%)", color: "#fff", fontFamily: "'IBM Plex Mono'", fontSize: 11 }} />
+                    <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="space-y-2 text-xs">
@@ -274,7 +274,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,11%,25%)" />
                   <XAxis dataKey="name" tick={{ ...chartStyle, fontSize: 10 }} stroke="hsl(210,14%,50%)" />
                   <YAxis domain={[60, 100]} tick={chartStyle} stroke="hsl(210,14%,50%)" />
-                  <Tooltip contentStyle={{ background: "hsl(210,11%,15%)", border: "1px solid hsl(210,11%,25%)", color: "#fff", fontFamily: "'IBM Plex Mono'", fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
                   <Bar dataKey="avg" name="Avg Score">
                     {categoryPerformance.map((_, i) => (
                       <Cell key={i} fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]} />
@@ -290,7 +290,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,11%,25%)" />
                   <XAxis dataKey="name" tick={chartStyle} stroke="hsl(210,14%,50%)" />
                   <YAxis domain={["auto", "auto"]} tick={chartStyle} stroke="hsl(210,14%,50%)" />
-                  <Tooltip contentStyle={{ background: "hsl(210,11%,15%)", border: "1px solid hsl(210,11%,25%)", color: "#fff", fontFamily: "'IBM Plex Mono'", fontSize: 11 }}
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }}
                     formatter={(value: number, _: string, props: any) => [`${value} (${props.payload.supplier})`, "Score"]} />
                   <Line type="monotone" dataKey="score" stroke="hsl(45,100%,51%)" strokeWidth={2} dot={{ r: 4, fill: "hsl(45,100%,51%)" }} />
                 </LineChart>
@@ -307,7 +307,7 @@ export default function Dashboard() {
                   <XAxis type="number" dataKey="x" name="OTD %" domain={[50, 100]} tick={chartStyle} stroke="hsl(210,14%,50%)" label={{ value: "On-Time Delivery (%)", position: "bottom", style: { ...chartStyle, fill: "hsl(210,14%,50%)" }, offset: -5 }} />
                   <YAxis type="number" dataKey="y" name="Score" domain={[50, 100]} tick={chartStyle} stroke="hsl(210,14%,50%)" />
                   <ZAxis type="number" dataKey="z" range={[40, 200]} />
-                  <Tooltip contentStyle={{ background: "hsl(210,11%,15%)", border: "1px solid hsl(210,11%,25%)", color: "#fff", fontFamily: "'IBM Plex Mono'", fontSize: 11 }}
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }}
                     formatter={(value: number, name: string) => [name === "OTD %" ? `${value}%` : value, name]}
                     labelFormatter={(_, payload) => payload?.[0]?.payload?.name || ""} />
                   <Scatter data={riskMatrix} name="Suppliers">
@@ -333,7 +333,7 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,11%,25%)" />
                   <XAxis dataKey="name" tick={{ ...chartStyle, fontSize: 10 }} stroke="hsl(210,14%,50%)" />
                   <YAxis tick={chartStyle} stroke="hsl(210,14%,50%)" />
-                  <Tooltip contentStyle={{ background: "hsl(210,11%,15%)", border: "1px solid hsl(210,11%,25%)", color: "#fff", fontFamily: "'IBM Plex Mono'", fontSize: 11 }} />
+                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
                   <Bar dataKey="avg" name="Avg Reject %">
                     {rejectionByCategory.map((_, i) => (
                       <Cell key={i} fill={i === 0 ? GRADE_COLORS.C : i === 1 ? GRADE_COLORS.D : GRADE_COLORS.B} />
