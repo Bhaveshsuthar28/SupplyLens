@@ -20,21 +20,37 @@ import { api } from "@/lib/apiClient";
 import { queryKeys } from "@/lib/queryKeys";
 import { normalizeSupplierList } from "@/lib/normalizers";
 
-function LoadingScreen() {
-  const [showWarmup, setShowWarmup] = useState(false);
+function LoadingScreen({ onRetry }) {
+  const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    const t = setTimeout(() => setShowWarmup(true), 4000);
-    return () => clearTimeout(t);
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
   }, []);
+
+  const slow = elapsed >= 8;
+  const veryLong = elapsed >= 35;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">
-      <div className="flex flex-col items-center gap-4">
-        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm text-center max-w-[220px] leading-snug">
-          {showWarmup ? (
-            <>Server is warming up…<br />This only happens once after inactivity.</>
-          ) : "Loading…"}
+      <div className="flex flex-col items-center gap-4 max-w-[260px] text-center">
+        {!veryLong && (
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        )}
+        <p className="text-slate-400 text-sm leading-snug">
+          {veryLong
+            ? "Server is taking unusually long."
+            : slow
+            ? <>Server is warming up…<br />This only happens once after inactivity.</>
+            : "Loading…"}
         </p>
+        {veryLong && onRetry && (
+          <button
+            onClick={onRetry}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
+        )}
       </div>
     </div>
   );
@@ -82,7 +98,7 @@ export default function ProtectedRoute({ children }) {
     });
   }, [accessToken, queryClient]);
 
-  // 1. Clerk SDK initializing — only happens once at app start
+  // 1. Clerk SDK initializing — only happens once at app start (~200ms)
   if (!isLoaded) return <LoadingScreen />;
 
   // 2. Not signed in
@@ -92,10 +108,10 @@ export default function ProtectedRoute({ children }) {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="text-center">
-          <p className="text-red-400 mb-4">{error}</p>
+        <div className="text-center max-w-[260px]">
+          <p className="text-red-400 mb-4 text-sm">{error}</p>
           <button
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
             onClick={() => { setError(null); exchangeStarted.current = false; }}
           >
             Retry
@@ -105,8 +121,14 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
-  // 4. Signed in but exchange still in flight — show spinner until token arrives
-  if (!isReady || !accessToken) return <LoadingScreen />;
+  // 4. Signed in but exchange still in flight
+  if (!isReady || !accessToken) {
+    return (
+      <LoadingScreen
+        onRetry={() => { exchangeStarted.current = false; exchange().catch((e) => setError(e.message)); }}
+      />
+    );
+  }
 
   // 5. Authenticated — render immediately, no spinner
   return children;

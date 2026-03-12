@@ -33,6 +33,8 @@ async function request(path, options = {}, retry = true) {
     ...options,
     credentials: "include",
     headers,
+    // File uploads get 2 min; everything else hard-caps at 30 s so we never hang forever
+    signal: options.signal ?? AbortSignal.timeout(options._multipart ? 120_000 : 30_000),
   });
 
   if (res.status === 401 && retry) {

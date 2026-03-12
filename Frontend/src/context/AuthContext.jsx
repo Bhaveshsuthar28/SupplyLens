@@ -64,6 +64,7 @@ export function AuthProvider({ children }) {
         method: "POST",
         credentials: "include", // receive httpOnly refresh cookie
         headers: { Authorization: `Bearer ${clerkToken}` },
+        signal: AbortSignal.timeout(45_000), // fail after 45 s, never hang forever
       });
 
       if (!res.ok) throw new Error(`Exchange failed: ${res.status}`);
@@ -84,6 +85,7 @@ export function AuthProvider({ children }) {
       const res = await fetch(`${API}/auth/refresh`, {
         method: "POST",
         credentials: "include",
+        signal: AbortSignal.timeout(20_000), // fail after 20 s
       });
       if (!res.ok) {
         clearAuth();
