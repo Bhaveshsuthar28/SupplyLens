@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
@@ -77,40 +77,6 @@ def risk_suppliers(db: Session = Depends(get_db)):
         }
         for s in rows
     ]
-
-
-@router.post("/fix-composites", summary="One-time: recalculate zero-composite weekly scores from KPIs")
-def fix_composites(db: Session = Depends(get_db)):
-    rows = db.query(WeeklyScore).filter(WeeklyScore.composite == 0).all()
-    fixed = 0
-    for row in rows:
-        if row.otd == 0 and row.fill_rate == 0 and row.reject_rate == 0:
-            continue
-        new_val = round(0.40 * row.otd + 0.30 * row.fill_rate + 0.30 * (100.0 - row.reject_rate))
-        if new_val > 0:
-            row.composite = new_val
-            fixed += 1
-    db.commit()
-    return {"fixed": fixed, "scanned": len(rows)}
-
-
-@router.get("/weekly-trend", summary="Avg composite score per week (filterable)")
-def weekly_trend(
-    category: str = Query(None),
-    grade: str = Query(None, pattern="^[ABCD]$"),
-    db: Session = Depends(get_db),
-):
-    q = (
-        db.query(WeeklyScore.week, func.avg(WeeklyScore.composite).label("avg"))
-        .join(WeeklyScore.supplier)
-    )
-    if category:
-        q = q.filter(Supplier.category == category)
-    if grade:
-        q = q.filter(Supplier.grade == grade)
-    q = q.filter(WeeklyScore.composite > 0)
-    rows = q.group_by(WeeklyScore.week).order_by(WeeklyScore.week).all()
-    return [{"week": r.week, "avg": round(r.avg or 0)} for r in rows]
 
 
 # ── Weight Recalculation ──────────────────────────────────────────────────────

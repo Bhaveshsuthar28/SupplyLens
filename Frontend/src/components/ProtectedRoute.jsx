@@ -13,44 +13,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth as useClerkAuth } from "@clerk/react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/context/AuthContext";
 import { injectAuthHandlers } from "@/lib/apiClient";
-import { api } from "@/lib/apiClient";
-import { queryKeys } from "@/lib/queryKeys";
-import { normalizeSupplierList } from "@/lib/normalizers";
 
-function LoadingScreen({ onRetry }) {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const slow = elapsed >= 8;
-  const veryLong = elapsed >= 35;
-
+function LoadingScreen() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">
-      <div className="flex flex-col items-center gap-4 max-w-[260px] text-center">
-        {!veryLong && (
-          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        )}
-        <p className="text-slate-400 text-sm leading-snug">
-          {veryLong
-            ? "Server is taking unusually long."
-            : slow
-            ? <>Server is warming up…<br />This only happens once after inactivity.</>
-            : "Loading…"}
-        </p>
-        {veryLong && onRetry && (
-          <button
-            onClick={onRetry}
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors"
-          >
-            Retry
-          </button>
-        )}
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-slate-400 text-sm">Loading…</p>
       </div>
     </div>
   );
@@ -60,10 +31,9 @@ export default function ProtectedRoute({ children }) {
   const { isLoaded, isSignedIn } = useClerkAuth();
   const { accessToken, isReady, exchange, refresh, clearAuth } = useAuthContext();
   const [error, setError] = useState(null);
-  const queryClient = useQueryClient();
 
+  // Ref prevents double-triggering exchange when dependencies are recreated
   const exchangeStarted = useRef(false);
-  const prefetchDone = useRef(false);
 
   // Inject auth handlers once — stable because accessToken update triggers re-inject
   useEffect(() => {
@@ -80,25 +50,7 @@ export default function ProtectedRoute({ children }) {
     });
   }, [isLoaded, isSignedIn, accessToken, exchange]);
 
-  // Prefetch the most-used queries once right after auth is ready
-  useEffect(() => {
-    if (!accessToken || prefetchDone.current) return;
-    prefetchDone.current = true;
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.suppliers.all(),
-      queryFn: () =>
-        api.get("/api/v1/suppliers/?page=1&page_size=500")
-          .then((r) => normalizeSupplierList(r.data)),
-      staleTime: 5 * 60 * 1000,
-    });
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.metrics.summary(),
-      queryFn: () => api.get("/api/v1/metrics/summary"),
-      staleTime: 5 * 60 * 1000,
-    });
-  }, [accessToken, queryClient]);
-
-  // 1. Clerk SDK initializing — only happens once at app start (~200ms)
+  // 1. Clerk SDK initializing — only happens once at app start
   if (!isLoaded) return <LoadingScreen />;
 
   // 2. Not signed in
@@ -108,10 +60,10 @@ export default function ProtectedRoute({ children }) {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="text-center max-w-[260px]">
-          <p className="text-red-400 mb-4 text-sm">{error}</p>
+        <div className="text-center">
+          <p className="text-red-400 mb-4">{error}</p>
           <button
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             onClick={() => { setError(null); exchangeStarted.current = false; }}
           >
             Retry
@@ -121,14 +73,8 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
-  // 4. Signed in but exchange still in flight
-  if (!isReady || !accessToken) {
-    return (
-      <LoadingScreen
-        onRetry={() => { exchangeStarted.current = false; exchange().catch((e) => setError(e.message)); }}
-      />
-    );
-  }
+  // 4. Signed in but exchange still in flight — show spinner until token arrives
+  if (!isReady || !accessToken) return <LoadingScreen />;
 
   // 5. Authenticated — render immediately, no spinner
   return children;
