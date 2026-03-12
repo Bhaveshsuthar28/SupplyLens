@@ -13,15 +13,28 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth as useClerkAuth } from "@clerk/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/context/AuthContext";
 import { injectAuthHandlers } from "@/lib/apiClient";
+import { api } from "@/lib/apiClient";
+import { queryKeys } from "@/lib/queryKeys";
+import { normalizeSupplierList } from "@/lib/normalizers";
 
 function LoadingScreen() {
+  const [showWarmup, setShowWarmup] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setShowWarmup(true), 4000);
+    return () => clearTimeout(t);
+  }, []);
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-900">
-      <div className="flex flex-col items-center gap-3">
+      <div className="flex flex-col items-center gap-4">
         <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-slate-400 text-sm">Loading…</p>
+        <p className="text-slate-400 text-sm text-center max-w-[220px] leading-snug">
+          {showWarmup
+            ? "Server is warming up…\nThis only happens once after inactivity."
+            : "Loading…"}
+        </p>
       </div>
     </div>
   );
@@ -31,9 +44,10 @@ export default function ProtectedRoute({ children }) {
   const { isLoaded, isSignedIn } = useClerkAuth();
   const { accessToken, isReady, exchange, refresh, clearAuth } = useAuthContext();
   const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
-  // Ref prevents double-triggering exchange when dependencies are recreated
   const exchangeStarted = useRef(false);
+  const prefetchDone = useRef(false);
 
   // Inject auth handlers once — stable because accessToken update triggers re-inject
   useEffect(() => {
@@ -49,6 +63,24 @@ export default function ProtectedRoute({ children }) {
       setError(err.message);
     });
   }, [isLoaded, isSignedIn, accessToken, exchange]);
+
+  // Prefetch the most-used queries once right after auth is ready
+  useEffect(() => {
+    if (!accessToken || prefetchDone.current) return;
+    prefetchDone.current = true;
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.suppliers.all(),
+      queryFn: () =>
+        api.get("/api/v1/suppliers/?page=1&page_size=500")
+          .then((r) => normalizeSupplierList(r.data)),
+      staleTime: 5 * 60 * 1000,
+    });
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.metrics.summary(),
+      queryFn: () => api.get("/api/v1/metrics/summary"),
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [accessToken, queryClient]);
 
   // 1. Clerk SDK initializing — only happens once at app start
   if (!isLoaded) return <LoadingScreen />;
