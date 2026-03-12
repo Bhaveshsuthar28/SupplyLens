@@ -3,7 +3,8 @@ import { cn } from "@/lib/utils";
 const trendConfig = {
   Stable: { color: 'text-success', dot: 'bg-success', label: 'Stable' },
   Improving: { color: 'text-success', dot: 'bg-success', label: 'Improving' },
-  Degrading: { color: 'text-destructive', dot: 'bg-destructive', label: 'Degrading' },
+  Declining: { color: 'text-destructive', dot: 'bg-destructive', label: 'Declining' },
+  Degrading: { color: 'text-destructive', dot: 'bg-destructive', label: 'Declining' },
   Erratic: { color: 'text-warning', dot: 'bg-warning', label: 'Erratic' },
 };
 

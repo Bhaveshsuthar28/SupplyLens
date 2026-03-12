@@ -1,47 +1,81 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useRef } from "react";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { CATEGORIES, GRADES } from "@/lib/supplierData";
 import { GradeBadge } from "@/components/GradeBadge";
 import { TrendIndicator } from "@/components/TrendIndicator";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { api } from "@/lib/apiClient";
 import { normalizeSupplierList } from "@/lib/normalizers";
+import { queryKeys } from "@/lib/queryKeys";
 
 const PAGE_SIZE = 15;
 
 export default function Suppliers() {
   useDocumentTitle("Vendor Performance");
+  const queryClient = useQueryClient();
   const [category, setCategory] = useState("All Categories");
   const [grade, setGrade] = useState("All Grades");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [suppliers, setSuppliers] = useState([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
+  const [removingId, setRemovingId] = useState(null);
+  const [confirmRemoveAll, setConfirmRemoveAll] = useState(false);
+  const [removingAll, setRemovingAll] = useState(false);
+  const confirmTimer = useRef(null);
 
-  const fetchSuppliers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const invalidate = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.metrics.all() }),
+  ]);
+
+  const handleRemove = async (id) => {
+    if (confirmId !== id) {
+      setConfirmId(id);
+      clearTimeout(confirmTimer.current);
+      confirmTimer.current = setTimeout(() => setConfirmId(null), 3000);
+      return;
+    }
+    setConfirmId(null);
+    setRemovingId(id);
     try {
+      await api.delete(`/api/v1/suppliers/${id}`);
+      await invalidate();
+      if (suppliers.length === 1 && page > 1) setPage((p) => p - 1);
+    } finally {
+      setRemovingId(null);
+    }
+  };
+
+  const handleRemoveAll = async () => {
+    if (!confirmRemoveAll) { setConfirmRemoveAll(true); return; }
+    setConfirmRemoveAll(false);
+    setRemovingAll(true);
+    try {
+      await api.delete("/api/v1/suppliers/");
+      await invalidate();
+      setPage(1);
+    } finally {
+      setRemovingAll(false);
+    }
+  };
+
+  const { data, isLoading: loading, error: queryError } = useQuery({
+    queryKey: queryKeys.suppliers.list({ category, grade, search, page }),
+    queryFn: async () => {
       const params = new URLSearchParams({ page, page_size: PAGE_SIZE });
       if (category !== "All Categories") params.set("category", category);
       if (grade !== "All Grades") params.set("grade", grade);
       if (search.trim()) params.set("search", search.trim());
-      const result = await api.get(`/api/v1/suppliers/?${params}`);
-      setSuppliers(normalizeSupplierList(result.data));
-      setTotal(result.total);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [category, grade, search, page]);
+      return api.get(`/api/v1/suppliers/?${params}`);
+    },
+    placeholderData: keepPreviousData,
+  });
 
-  useEffect(() => {
-    fetchSuppliers();
-  }, [fetchSuppliers]);
+  const suppliers = normalizeSupplierList(data?.data ?? []);
+  const total     = data?.total ?? 0;
+  const error     = queryError?.message ?? null;
 
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
@@ -51,7 +85,29 @@ export default function Suppliers() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold text-foreground mb-1">Vendor Performance Overview</h1>
+      <div className="flex items-start justify-between mb-1">
+        <h1 className="text-2xl font-bold text-foreground">Vendor Performance Overview</h1>
+        <div className="flex items-center gap-2">
+          {confirmRemoveAll && (
+            <button onClick={() => setConfirmRemoveAll(false)}
+              className="h-8 px-3 border border-border rounded text-xs font-sans text-muted-foreground hover:bg-card transition-colors">
+              Cancel
+            </button>
+          )}
+          <button
+            onClick={handleRemoveAll}
+            disabled={removingAll || total === 0}
+            className={`inline-flex items-center gap-1.5 h-8 px-3 rounded text-xs font-sans font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+              confirmRemoveAll
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                : "border border-destructive/50 text-destructive hover:bg-destructive/10"
+            }`}
+          >
+            <Trash2 className="w-3 h-3" />
+            {removingAll ? "Removing…" : confirmRemoveAll ? "Confirm Remove All" : "Remove All"}
+          </button>
+        </div>
+      </div>
       <p className="text-sm text-muted-foreground mb-8">Track and evaluate supplier performance over the past six months.</p>
 
       {/* Filters */}
@@ -109,10 +165,23 @@ export default function Suppliers() {
                   <td className="px-4 py-3"><TrendIndicator trend={s.trend} /></td>
                   <td className="px-4 py-3"><GradeBadge grade={s.grade} size="sm" /></td>
                   <td className="px-4 py-3">
-                    <Link to={`/suppliers/${s.id}`}
-                      className="inline-flex items-center justify-center h-7 px-3 bg-primary text-primary-foreground text-xs font-sans font-medium rounded hover:opacity-90 transition-opacity">
-                      View
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link to={`/suppliers/${s.id}`}
+                        className="inline-flex items-center justify-center h-7 px-3 bg-primary text-primary-foreground text-xs font-sans font-medium rounded hover:opacity-90 transition-opacity">
+                        View
+                      </Link>
+                      <button
+                        onClick={() => handleRemove(s.id)}
+                        disabled={removingId === s.id}
+                        className={`inline-flex items-center justify-center h-7 px-3 text-xs font-sans font-medium rounded transition-colors disabled:opacity-50 ${
+                          confirmId === s.id
+                            ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            : "border border-destructive/40 text-destructive hover:bg-destructive/10"
+                        }`}
+                      >
+                        {removingId === s.id ? "…" : confirmId === s.id ? "Confirm?" : "Remove"}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

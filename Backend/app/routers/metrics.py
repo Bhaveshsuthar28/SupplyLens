@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.orm import Session
-from sqlalchemy import func, text
+from pydantic import BaseModel
+from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func
 
 from app.database import get_db
-from app.models.supplier import Supplier
+from app.models.supplier import Supplier, WeeklyScore
 from app.core.security import verify_access_token
+from app.agents import weight_recalculation as wr_agent
 
 router = APIRouter(
     prefix="/metrics",
@@ -75,3 +77,83 @@ def risk_suppliers(db: Session = Depends(get_db)):
         }
         for s in rows
     ]
+
+
+# ── Weight Recalculation ──────────────────────────────────────────────────────
+
+class WeightsBody(BaseModel):
+    new_weights: dict  # {weight_otd, weight_fr, weight_qr} as fractions summing to 1
+    old_weights: dict
+
+
+@router.post("/recalculate", summary="Recalculate all scores with new weights")
+def recalculate_weights(payload: WeightsBody, db: Session = Depends(get_db)):
+    # Build historical_data from all WeeklyScore rows joined with Supplier
+    rows = (
+        db.query(WeeklyScore)
+        .options(joinedload(WeeklyScore.supplier))
+        .order_by(WeeklyScore.supplier_id, WeeklyScore.week)
+        .all()
+    )
+
+    def _old_rating(score):
+        if score >= 95: return "A"
+        if score >= 85: return "B"
+        if score >= 70: return "C"
+        return "D"
+
+    historical_data = [
+        {
+            "record_id":           row.id,
+            "supplier_id":         row.supplier_id,
+            "supplier_name":       row.supplier.name,
+            "category":            row.supplier.category,
+            "week_start_date":     row.week,
+            "otd_pct":             row.otd,
+            "fr_pct":              row.fill_rate,
+            "qr_pct":              row.reject_rate,
+            "old_composite_score": float(row.composite),
+            "old_rating":          _old_rating(row.composite),
+        }
+        for row in rows
+    ]
+
+    result = wr_agent.run(payload.new_weights, payload.old_weights, historical_data)
+
+    # Bulk-update WeeklyScore.composite
+    rec_map = {r["record_id"]: r for r in result["recalculated_records"]}
+    for row in rows:
+        rec = rec_map.get(row.id)
+        if rec and rec["score"]["new_composite_score"] is not None:
+            row.composite = int(round(rec["score"]["new_composite_score"]))
+
+    # Update each Supplier using its latest week's recalculated record
+    latest: dict = {}
+    for rec in result["recalculated_records"]:
+        sid = rec["supplier_id"]
+        if sid not in latest or rec["week_start_date"] > latest[sid]["week_start_date"]:
+            latest[sid] = rec
+
+    for sid, rec in latest.items():
+        supplier = db.query(Supplier).filter(Supplier.id == sid).first()
+        if not supplier:
+            continue
+        ns = rec["score"]["new_composite_score"]
+        nr = rec["score"]["new_rating"]
+        t  = rec["trend"].get("trend_30d") or "Stable"
+        if t == "Insufficient Data":
+            t = "Stable"
+        if ns is not None:
+            supplier.composite_score = int(round(ns))
+        if nr:
+            supplier.grade = nr
+        supplier.trend = t
+
+    db.commit()
+
+    # Return impact summary only (skip bulk recalculated_records to keep response lean)
+    return {
+        "status":          result["status"],
+        "weights_applied": result["weights_applied"],
+        "impact_summary":  result["impact_summary"],
+    }

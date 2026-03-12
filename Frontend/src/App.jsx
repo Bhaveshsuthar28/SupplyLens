@@ -17,7 +17,16 @@ import NotFound from "./pages/NotFound";
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000,   // data stays fresh for 5 min — no re-fetch on every nav
+      gcTime:    10 * 60 * 1000,  // keep unused cache in memory for 10 min
+      refetchOnWindowFocus: false, // don't refetch on tab switch
+      retry: 1,                   // only retry once on failure (default is 3)
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

@@ -21,13 +21,21 @@ class Settings(BaseSettings):
     # Security / JWT
     secret_key: str
     algorithm: str = "HS256"
-    access_token_expire_minutes: int = 15
+    access_token_expire_minutes: int = 60   # 1 hour — reduces mid-session refresh overhead
     refresh_token_expire_days: int = 7
 
     # Clerk
     clerk_publishable_key: str = ""
     clerk_secret_key: str = ""
     clerk_jwks_url: str = ""
+
+    # Email / SMTP (Brevo)
+    smtp_host: str = "smtp-relay.brevo.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_pass: str = ""
+    mail_default_from: str = ""  # must be a Brevo-verified sender; defaults to smtp_user if empty
+    mail_alert_recipient: str = ""  # if set, all C/D alerts go here; else uses uploader's email
 
     # CORS
     allowed_origins: str = "http://localhost:5173"

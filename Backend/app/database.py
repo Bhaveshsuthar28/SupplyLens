@@ -15,7 +15,9 @@ engine = create_engine(
     connect_args=connect_args,
     pool_pre_ping=True,       # test connections before using them
     pool_recycle=3600,        # recycle connections every hour
-    echo=settings.debug,      # log SQL in development
+    pool_size=10,             # more connections ready for burst requests
+    max_overflow=20,
+    echo=False,               # never log every SQL query (too noisy, adds overhead)
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -115,7 +115,7 @@ const NAV_ITEMS = [
 ];
 
 // ─── Animated User Menu (signed-in state) ─────────────────────────────────────
-function UserMenu({ displayName, onSignOut }) {
+function UserMenu({ displayName, imageUrl, onSignOut }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   const navigate = useNavigate();
@@ -202,15 +202,32 @@ function UserMenu({ displayName, onSignOut }) {
             transform: open ? "scale(1.06)" : "scale(1)",
             transition: "box-shadow 260ms ease, transform 320ms cubic-bezier(0.34,1.56,0.64,1)",
           }}>
-          {/* Person icon */}
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{
-            position: "absolute", opacity: open ? 0 : 1,
-            transform: open ? "scale(0.35) rotate(80deg)" : "scale(1) rotate(0deg)",
-            transition: "opacity 160ms ease, transform 210ms ease",
-          }}>
-            <circle cx="12" cy="8" r="4" fill="white" />
-            <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
-          </svg>
+          {/* Profile photo (fades out when menu opens, revealing X + gradient) */}
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt={displayName}
+              referrerPolicy="no-referrer"
+              style={{
+                width: "100%", height: "100%", objectFit: "cover",
+                borderRadius: "9999px", position: "absolute", inset: 0, zIndex: 1,
+                opacity: open ? 0 : 1,
+                transform: open ? "scale(0.8)" : "scale(1)",
+                transition: "opacity 160ms ease, transform 210ms ease",
+              }}
+            />
+          )}
+          {/* Person icon — shown when no profile photo and menu is closed */}
+          {!imageUrl && (
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{
+              position: "absolute", opacity: open ? 0 : 1,
+              transform: open ? "scale(0.35) rotate(80deg)" : "scale(1) rotate(0deg)",
+              transition: "opacity 160ms ease, transform 210ms ease",
+            }}>
+              <circle cx="12" cy="8" r="4" fill="white" />
+              <path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
+            </svg>
+          )}
           {/* X icon */}
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{
             position: "absolute", opacity: open ? 1 : 0,
@@ -288,6 +305,7 @@ export default function Index() {
   const displayName = user
     ? (user.fullName || user.firstName || user.primaryEmailAddress?.emailAddress?.split("@")[0] || "User")
     : "";
+  const imageUrl = user?.imageUrl || null;
 
   // Navigate to a protected path — show auth modal if not signed in
   const handleProtectedNav = (path) => {
@@ -333,7 +351,7 @@ export default function Index() {
           {!isLoaded ? (
             <div className="w-7 h-7 rounded-full border-2 border-primary border-t-transparent animate-spin" />
           ) : isSignedIn ? (
-            <UserMenu displayName={displayName} onSignOut={() => setShowSignOutConfirm(true)} />
+            <UserMenu displayName={displayName} imageUrl={imageUrl} onSignOut={() => setShowSignOutConfirm(true)} />
           ) : (
             <div className="flex items-center gap-2">
               <button

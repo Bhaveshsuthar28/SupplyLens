@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CATEGORIES, GRADES } from "@/lib/supplierData";
 import { GradeBadge } from "@/components/GradeBadge";
 import { TrendIndicator } from "@/components/TrendIndicator";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import { BarChart3, Users, TrendingUp, AlertTriangle, Download, Filter } from "lucide-react";
 import { api } from "@/lib/apiClient";
 import { normalizeSupplierList } from "@/lib/normalizers";
+import { queryKeys } from "@/lib/queryKeys";
 
 const GRADE_COLORS = {
   A: "hsl(142, 72%, 36%)",
@@ -30,15 +32,13 @@ export default function Dashboard() {
   const [category, setCategory] = useState("All Categories");
   const [grade, setGrade] = useState("All Grades");
   const [timePeriod, setTimePeriod] = useState("Last 6 Months");
-  const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    api.get("/api/v1/suppliers/?page=1&page_size=500")
-      .then((result) => setSuppliers(normalizeSupplierList(result.data)))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: suppliers = [], isLoading: loading } = useQuery({
+    queryKey: queryKeys.suppliers.all(),
+    queryFn:  () =>
+      api.get("/api/v1/suppliers/?page=1&page_size=500")
+        .then((r) => normalizeSupplierList(r.data)),
+  });
 
   const filtered = useMemo(() => suppliers.filter((s) => {
     if (category !== "All Categories" && s.category !== category) return false;

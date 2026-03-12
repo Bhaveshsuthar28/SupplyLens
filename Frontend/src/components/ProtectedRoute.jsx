@@ -73,9 +73,8 @@ export default function ProtectedRoute({ children }) {
     );
   }
 
-  // 4. Signed in but exchange still in flight (first login only, ~300ms one-time)
-  //    Render null instead of a full spinner — no flash on subsequent navigations
-  if (!isReady || !accessToken) return null;
+  // 4. Signed in but exchange still in flight — show spinner until token arrives
+  if (!isReady || !accessToken) return <LoadingScreen />;
 
   // 5. Authenticated — render immediately, no spinner
   return children;

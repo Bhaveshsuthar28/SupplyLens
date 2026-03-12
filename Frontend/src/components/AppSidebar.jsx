@@ -7,6 +7,7 @@ import {
   Upload, LogOut, ChevronRight,
 } from "lucide-react";
 import { useAuthContext } from "@/context/AuthContext";
+import { useUploadContext } from "@/context/UploadContext";
 import SignOutConfirm from "@/components/SignOutConfirm";
 
 const navItems = [
@@ -43,6 +44,7 @@ export function AppSidebar() {
   const { user: authUser, logout } = useAuthContext();
   const { user: clerkUser } = useUser();
   const [showConfirm, setShowConfirm] = useState(false);
+  const { uploading, file } = useUploadContext();
 
   const displayName = clerkUser?.fullName || clerkUser?.firstName || authUser?.email?.split("@")[0] || "User";
   const email = clerkUser?.primaryEmailAddress?.emailAddress || authUser?.email || "";
@@ -80,6 +82,24 @@ export function AppSidebar() {
           );
         })}
       </nav>
+
+      {/* Upload progress indicator */}
+      {uploading && (
+        <div className="mx-3 mb-2 px-3 py-2.5 rounded border border-sidebar-border bg-sidebar-accent/40">
+          <div className="flex items-center gap-2">
+            <svg className="animate-spin w-3.5 h-3.5 text-sidebar-primary shrink-0" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+            </svg>
+            <div className="min-w-0">
+              <p className="text-xs font-sans font-semibold text-sidebar-foreground leading-tight">Processing upload…</p>
+              {file && (
+                <p className="text-xs font-mono text-sidebar-foreground/50 truncate leading-tight mt-0.5">{file.name}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Profile section */}
       <div className="border-t border-sidebar-border">

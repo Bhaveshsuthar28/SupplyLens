@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getGradeLabel, getGrade } from "@/lib/supplierData";
@@ -17,6 +18,7 @@ import {
 } from "recharts";
 import { api } from "@/lib/apiClient";
 import { normalizeSupplier } from "@/lib/normalizers";
+import { queryKeys } from "@/lib/queryKeys";
 
 const gradeChartColor = {
   A: 'hsl(142, 72%, 36%)',
@@ -56,7 +58,7 @@ function getRecommendations(supplier) {
   if (supplier.rejectRate > 3) recs.push("Audit supplier production quality processes.");
   if (supplier.otd < 80) recs.push("Investigate delivery delays and renegotiate contract terms.");
   if (supplier.fillRate < 90) recs.push("Review supplier capacity and consider backup vendor.");
-  if (supplier.trend === 'Degrading') recs.push("Schedule performance review meeting with supplier.");
+  if (supplier.trend === 'Degrading' || supplier.trend === 'Declining') recs.push("Schedule performance review meeting with supplier.");
   if (supplier.grade === 'D') recs.push("Initiate transition to secondary supplier.");
   if (supplier.trend === 'Erratic') recs.push("Adjust procurement schedule to buffer variability.");
   if (recs.length === 0) recs.push("Continue monitoring. No immediate action required.");
@@ -257,21 +259,19 @@ function EmailModal({
 export default function SupplierScorecard() {
   const { id } = useParams();
   const { toast } = useToast();
-  const [supplier, setSupplier] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState(null);
   const [emailOpen, setEmailOpen] = useState(false);
 
-  useDocumentTitle(supplier ? `${supplier.name} Scorecard` : "Scorecard");
+  const {
+    data: supplier,
+    isLoading: loading,
+    error: fetchError,
+  } = useQuery({
+    queryKey: queryKeys.suppliers.detail(id),
+    queryFn:  () => api.get(`/api/v1/suppliers/${id}`).then(normalizeSupplier),
+    enabled:  !!id,
+  });
 
-  useEffect(() => {
-    setLoading(true);
-    setFetchError(null);
-    api.get(`/api/v1/suppliers/${id}`)
-      .then((data) => setSupplier(normalizeSupplier(data)))
-      .catch((err) => setFetchError(err.message))
-      .finally(() => setLoading(false));
-  }, [id]);
+  useDocumentTitle(supplier ? `${supplier.name} Scorecard` : "Scorecard");
 
   if (loading) {
     return (
@@ -284,7 +284,7 @@ export default function SupplierScorecard() {
   if (fetchError || !supplier) {
     return (
       <div className="p-8">
-        <p className="text-muted-foreground">{fetchError || "Supplier not found."}</p>
+        <p className="text-muted-foreground">{fetchError?.message || "Supplier not found."}</p>
         <Link to="/suppliers" className="text-primary text-sm hover:underline mt-2 inline-block">Back to suppliers</Link>
       </div>
     );

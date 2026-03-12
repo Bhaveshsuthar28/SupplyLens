@@ -38,7 +38,7 @@ def _get_or_404(supplier_id: str, db: Session) -> Supplier:
 @router.get("/", response_model=PaginatedSuppliers, summary="List suppliers")
 def list_suppliers(
     page: int = Query(1, ge=1),
-    page_size: int = Query(20, ge=1, le=100),
+    page_size: int = Query(20, ge=1, le=1000),
     category: str = Query(None),
     grade: str = Query(None, pattern="^[ABCD]$"),
     search: str = Query(None, description="Search by name"),
@@ -91,6 +91,13 @@ def update_supplier(
     db.commit()
     db.refresh(supplier)
     return supplier
+
+
+@router.delete("/", status_code=status.HTTP_204_NO_CONTENT, summary="Delete all suppliers")
+def delete_all_suppliers(db: Session = Depends(get_db)):
+    db.query(WeeklyScore).delete()
+    db.query(Supplier).delete()
+    db.commit()
 
 
 @router.delete("/{supplier_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete supplier")
