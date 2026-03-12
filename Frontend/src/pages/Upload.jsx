@@ -230,11 +230,11 @@ function TrendForecastReport({ tf }) {
       {/* All suppliers trend table */}
       <CollapsibleSection title={`All Suppliers (${supplier_results.length})`}>
         <div className="space-y-1 max-h-48 overflow-y-auto">
-          <div className="grid grid-cols-5 gap-2 text-xs font-mono text-muted-foreground pb-1 border-b border-border mb-1">
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs font-mono text-muted-foreground pb-1 border-b border-border mb-1">
             <span>ID</span><span>Score</span><span>Rating</span><span>Trend</span><span>Risk</span>
           </div>
           {supplier_results.map((s) => (
-            <div key={s.supplier_id} className="grid grid-cols-5 gap-2 text-xs font-mono items-center">
+            <div key={s.supplier_id} className="grid grid-cols-3 sm:grid-cols-5 gap-2 text-xs font-mono items-center">
               <span className="text-foreground font-semibold">{s.supplier_id}</span>
               <span className="text-foreground">{s.score?.composite_score ?? "—"}</span>
               <RatingBadge rating={s.score?.rating} />
@@ -271,13 +271,13 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-4 sm:p-8 max-w-3xl">
       <h1 className="text-2xl font-bold text-foreground mb-1">Data Ingestion</h1>
       <p className="text-sm text-muted-foreground mb-8">Upload CSV or Excel files containing procurement data.</p>
 
       {/* Drop zone */}
       <div
-        className={`border-2 border-dashed p-16 text-center transition-colors ${isDragging ? "border-primary bg-primary/5" : "border-border"}`}
+        className={`border-2 border-dashed p-8 sm:p-16 text-center transition-colors ${isDragging ? "border-primary bg-primary/5" : "border-border"}`}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
@@ -293,7 +293,7 @@ export default function UploadPage() {
 
       {/* File info + upload button */}
       {file && (
-        <div className="border border-border p-4 mt-6 shadow-crisp flex items-center justify-between">
+        <div className="border border-border p-4 mt-6 shadow-crisp flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <FileSpreadsheet className="w-5 h-5 text-primary" />
             <div>
@@ -341,7 +341,7 @@ export default function UploadPage() {
           </div>
 
           {/* KPI row */}
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 text-sm">
             <div className="text-center">
               <div className="font-mono font-bold text-2xl text-foreground">{result.rows_processed ?? "—"}</div>
               <div className="text-xs text-muted-foreground mt-1">Rows Processed</div>
@@ -436,7 +436,7 @@ export default function UploadPage() {
       {/* Expected columns reference */}
       <div className="border border-border p-6 mt-8 shadow-crisp">
         <h3 className="font-sans font-semibold text-foreground mb-3">Expected Data Columns</h3>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {["Supplier_ID", "Supplier_Name", "Category", "PO_Date", "Delivery_Date",
             "Expected_Delivery_Date", "Ordered_Qty", "Received_Qty", "Rejected_Qty"].map((col) => (
             <span key={col} className="text-xs font-mono text-muted-foreground border border-border px-2 py-1">{col}</span>

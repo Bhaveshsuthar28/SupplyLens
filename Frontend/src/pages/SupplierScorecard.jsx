@@ -328,11 +328,11 @@ export default function SupplierScorecard() {
   const rejectStatus = getMetricStatus('rejectRate', supplier.rejectRate);
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 sm:p-8 max-w-6xl">
 
       {/* Alert banner for C/D */}
       {showSendMail && (
-        <div className={`mb-5 rounded-xl px-5 py-4 flex items-center gap-4 ${
+        <div className={`mb-5 rounded-xl px-5 py-4 flex flex-wrap items-start gap-4 ${
           isD
             ? 'bg-red-50 border border-red-200'
             : 'bg-orange-50 border border-orange-200'
@@ -352,7 +352,7 @@ export default function SupplierScorecard() {
           </div>
           <button
             onClick={() => setEmailOpen(true)}
-            className={`relative inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-lg flex-shrink-0 transition-all ${
+            className={`relative inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-semibold text-white rounded-lg w-full sm:w-auto transition-all ${
               isD
                 ? 'bg-destructive hover:bg-destructive/90 shadow-lg shadow-red-200'
                 : 'bg-orange-500 hover:bg-orange-600 shadow-lg shadow-orange-200'
@@ -376,19 +376,19 @@ export default function SupplierScorecard() {
 
       {/* Header Card */}
       <div className="bg-sidebar text-sidebar-foreground rounded-lg p-6 mb-6">
-        <div className="flex items-center gap-5">
+        <div className="flex flex-wrap items-start gap-4 sm:gap-5">
           <div className="flex flex-col items-center">
             <GradeBadge grade={supplier.grade} size="lg" />
             <span className="text-xs mt-1 text-sidebar-foreground/70">{getGradeLabel(supplier.grade)}</span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold">{supplier.name}</h1>
-            <div className="flex items-center gap-3 mt-1 text-sm text-sidebar-foreground/70 font-mono">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-sm text-sidebar-foreground/70 font-mono">
               <span>-{supplier.id.replace('S', '')}</span>
               <span>Supplier: {supplier.category}</span>
             </div>
           </div>
-          <div className="text-right space-y-1 text-sm">
+          <div className="text-left sm:text-right space-y-1 text-sm w-full sm:w-auto">
             <div className="text-sidebar-foreground/70">Supplier ID: <span className="font-mono text-sidebar-foreground">{supplier.id}</span></div>
             <div className="text-sidebar-foreground/70">Category: <span className="text-sidebar-foreground">{supplier.category}</span></div>
             <div className="text-sidebar-foreground/70">Overall Grade:
@@ -471,8 +471,8 @@ export default function SupplierScorecard() {
       </div>
 
       {/* Weekly Breakdown Table */}
-      <div className="border border-border rounded-lg overflow-hidden mb-6">
-        <table className="w-full text-sm">
+      <div className="border border-border rounded-lg overflow-x-auto mb-6">
+        <table className="w-full text-sm min-w-[480px]">
           <thead>
             <tr className="bg-card border-b border-border">
               {['Metric', ...chartData.map(d => d.week)].map((h) => (

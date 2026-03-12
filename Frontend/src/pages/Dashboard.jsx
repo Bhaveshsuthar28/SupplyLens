@@ -193,9 +193,9 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 bg-sidebar min-h-screen">
+    <div className="p-4 sm:p-6 bg-sidebar min-h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
         <div className="flex items-center gap-3">
           <BarChart3 className="w-7 h-7 text-primary" />
           <h1 className="text-xl font-bold text-sidebar-foreground">
@@ -204,11 +204,11 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-[1fr_260px] gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-5">
         {/* Main content */}
         <div className="space-y-5">
           {/* KPI Cards */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <KPIBox icon={<Users className="w-5 h-5 text-primary" />} label="Total Suppliers" value={`${filtered.length}`} />
             <KPIBox icon={<TrendingUp className="w-5 h-5 text-success" />} label="Avg On-Time Delivery" value={`${avgOTD}%`} valueColor="text-success" />
             <KPIBox icon={<BarChart3 className="w-5 h-5 text-primary" />} label="Avg Fill Rate" value={`${avgFR}%`} valueColor="text-primary" />
@@ -216,7 +216,7 @@ export default function Dashboard() {
           </div>
 
           {/* Row 2: 3 charts */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <ChartCard title="Rejection Rate Distribution">
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={rejectionDist}>
@@ -263,7 +263,7 @@ export default function Dashboard() {
           </div>
 
           {/* Row 3: 3 charts */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <ChartCard title="Supplier Score Distribution">
               <div className="flex items-center gap-4">
                 <ResponsiveContainer width="55%" height={200}>
@@ -318,7 +318,7 @@ export default function Dashboard() {
           </div>
 
           {/* Row 4: Risk Matrix + Rejections */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <ChartCard title="Supplier Risk Matrix">
               <ResponsiveContainer width="100%" height={220}>
                 <ScatterChart>

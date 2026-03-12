@@ -4,7 +4,7 @@ import { useUser } from "@clerk/react";
 import { cn } from "@/lib/utils";
 import {
   BarChart3, Users, Settings, LayoutDashboard,
-  Upload, LogOut, ChevronRight,
+  Upload, LogOut, ChevronRight, X,
 } from "lucide-react";
 import { useAuthContext } from "@/context/AuthContext";
 import { useUploadContext } from "@/context/UploadContext";
@@ -39,7 +39,7 @@ function SidebarAvatar({ imageUrl, name }) {
   );
 }
 
-export function AppSidebar() {
+export function AppSidebar({ open, onClose }) {
   const location = useLocation();
   const { user: authUser, logout } = useAuthContext();
   const { user: clerkUser } = useUser();
@@ -51,12 +51,28 @@ export function AppSidebar() {
   const imageUrl = clerkUser?.imageUrl || null;
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-60 bg-sidebar text-sidebar-foreground flex flex-col z-50">
-      {/* Logo */}
-      <Link to="/" className="flex items-center gap-2 px-5 py-6 border-b border-sidebar-border">
-        <BarChart3 className="w-6 h-6 text-sidebar-primary" />
-        <span className="font-sans font-bold text-lg text-sidebar-foreground">SupplyLens</span>
-      </Link>
+    <aside className={cn(
+      "fixed left-0 top-0 bottom-0 w-60 bg-sidebar text-sidebar-foreground flex flex-col z-50 transition-transform duration-200",
+      "md:translate-x-0",
+      open ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+    )}>
+      {/* Logo + mobile close button */}
+      <div className="flex items-center border-b border-sidebar-border">
+        <Link
+          to="/"
+          onClick={onClose}
+          className="flex items-center gap-2 px-5 py-6 flex-1"
+        >
+          <BarChart3 className="w-6 h-6 text-sidebar-primary" />
+          <span className="font-sans font-bold text-lg text-sidebar-foreground">SupplyLens</span>
+        </Link>
+        <button
+          onClick={onClose}
+          className="md:hidden p-2 mr-2 rounded hover:bg-sidebar-accent transition-colors"
+        >
+          <X className="w-4 h-4 text-sidebar-foreground/60" />
+        </button>
+      </div>
 
       {/* Nav items */}
       <nav className="flex-1 py-4">
@@ -66,6 +82,7 @@ export function AppSidebar() {
             <Link
               key={item.to}
               to={item.to}
+              onClick={onClose}
               className={cn(
                 "flex items-center gap-3 px-5 py-3 text-sm font-sans transition-colors relative",
                 isActive
@@ -103,9 +120,9 @@ export function AppSidebar() {
 
       {/* Profile section */}
       <div className="border-t border-sidebar-border">
-        {/* Profile nav link */}
         <Link
           to="/profile"
+          onClick={onClose}
           className={cn(
             "flex items-center gap-3 px-4 py-3 transition-colors group relative",
             location.pathname === "/profile"
@@ -128,7 +145,6 @@ export function AppSidebar() {
           <ChevronRight className="w-3.5 h-3.5 text-sidebar-foreground/40 shrink-0 group-hover:text-sidebar-foreground/70 transition-colors" />
         </Link>
 
-        {/* Sign out */}
         <div className="px-4 pb-4 pt-1">
           <button
             onClick={() => setShowConfirm(true)}

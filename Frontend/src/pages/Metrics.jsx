@@ -90,7 +90,7 @@ export default function Metrics() {
   };
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 sm:p-8 max-w-4xl">
       <h1 className="text-2xl font-bold text-foreground mb-1">Evaluation Metrics</h1>
       <p className="text-sm text-muted-foreground mb-8">Define how supplier performance is measured and scored.</p>
 
@@ -98,7 +98,7 @@ export default function Metrics() {
       {summary && (
         <div className="border border-border p-5 shadow-crisp mb-8">
           <h3 className="font-sans font-semibold text-foreground mb-4 text-sm">Live Database Summary</h3>
-          <div className="grid grid-cols-5 gap-4 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 text-center">
             <div>
               <div className="font-mono font-bold text-xl text-foreground">{summary.total_suppliers}</div>
               <div className="text-xs text-muted-foreground mt-1">Total Suppliers</div>
@@ -133,7 +133,7 @@ export default function Metrics() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
         {/* Current Applied Weights */}
         <div className="border border-border p-6 shadow-crisp">
           <h3 className="font-sans font-semibold text-foreground mb-4">Applied Weights</h3>
@@ -224,7 +224,7 @@ export default function Metrics() {
           <h3 className="font-sans font-semibold text-foreground mb-5 text-sm">Recalculation Impact</h3>
 
           {/* KPI row */}
-          <div className="grid grid-cols-4 gap-4 text-center mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-6">
             <div>
               <div className="font-mono font-bold text-2xl text-foreground">{impact.total_records_recalculated}</div>
               <div className="text-xs text-muted-foreground mt-1">Records Updated</div>
@@ -246,7 +246,7 @@ export default function Metrics() {
           </div>
 
           {/* Old vs New distribution */}
-          <div className="grid grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
             {[
               { label: 'Previous Distribution', dist: impact.old_rating_distribution },
               { label: 'New Distribution', dist: impact.new_rating_distribution },
@@ -272,7 +272,7 @@ export default function Metrics() {
                 <AlertTriangle className="w-3.5 h-3.5 text-warning" />
                 <p className="text-xs font-sans font-semibold text-foreground">Rating Changes ({impact.rating_changes.length})</p>
               </div>
-              <div className="border border-border rounded overflow-hidden">
+              <div className="border border-border rounded overflow-x-auto">
                 <table className="w-full text-xs">
                   <thead>
                     <tr className="bg-card border-b border-border">

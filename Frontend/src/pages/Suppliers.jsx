@@ -84,8 +84,8 @@ export default function Suppliers() {
   const handleSearch = (v) => { setSearch(v); setPage(1); };
 
   return (
-    <div className="p-8">
-      <div className="flex items-start justify-between mb-1">
+    <div className="p-4 sm:p-8">
+      <div className="flex flex-wrap items-start justify-between mb-1 gap-2">
         <h1 className="text-2xl font-bold text-foreground">Vendor Performance Overview</h1>
         <div className="flex items-center gap-2">
           {confirmRemoveAll && (
@@ -135,13 +135,19 @@ export default function Suppliers() {
       )}
 
       {/* Table */}
-      <div className="border border-border shadow-crisp overflow-hidden rounded-lg">
-        <table className="w-full text-sm">
+      <div className="border border-border shadow-crisp overflow-x-auto rounded-lg">
+        <table className="w-full text-sm min-w-[640px]">
           <thead>
             <tr className="bg-card border-b border-border">
-              {['ID', 'Supplier Name', 'Category', 'OTD %', 'Fill Rate %', 'Reject %', 'Trend (Last 30D)', 'Score', ''].map((h) => (
-                <th key={h} className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">{h}</th>
-              ))}
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden sm:table-cell">ID</th>
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Supplier Name</th>
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden md:table-cell">Category</th>
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">OTD %</th>
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden sm:table-cell">Fill Rate %</th>
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Reject %</th>
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden md:table-cell">Trend (Last 30D)</th>
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Score</th>
+              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider"></th>
             </tr>
           </thead>
           <tbody>
@@ -156,13 +162,13 @@ export default function Suppliers() {
             ) : (
               suppliers.map((s) => (
                 <tr key={s.id} className="border-b border-border hover:bg-card transition-colors">
-                  <td className="px-4 py-3 font-mono text-muted-foreground">{s.id}</td>
+                  <td className="px-4 py-3 font-mono text-muted-foreground hidden sm:table-cell">{s.id}</td>
                   <td className="px-4 py-3 font-sans font-medium text-foreground">{s.name}</td>
-                  <td className="px-4 py-3 font-sans text-muted-foreground">{s.category}</td>
+                  <td className="px-4 py-3 font-sans text-muted-foreground hidden md:table-cell">{s.category}</td>
                   <td className="px-4 py-3 font-mono">{s.otd}%</td>
-                  <td className="px-4 py-3 font-mono">{s.fillRate}%</td>
+                  <td className="px-4 py-3 font-mono hidden sm:table-cell">{s.fillRate}%</td>
                   <td className="px-4 py-3 font-mono">{s.rejectRate}%</td>
-                  <td className="px-4 py-3"><TrendIndicator trend={s.trend} /></td>
+                  <td className="px-4 py-3 hidden md:table-cell"><TrendIndicator trend={s.trend} /></td>
                   <td className="px-4 py-3"><GradeBadge grade={s.grade} size="sm" /></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
