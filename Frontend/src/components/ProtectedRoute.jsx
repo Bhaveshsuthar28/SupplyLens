@@ -31,9 +31,9 @@ function LoadingScreen() {
       <div className="flex flex-col items-center gap-4">
         <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
         <p className="text-slate-400 text-sm text-center max-w-[220px] leading-snug">
-          {showWarmup
-            ? "Server is warming up…\nThis only happens once after inactivity."
-            : "Loading…"}
+          {showWarmup ? (
+            <>Server is warming up…<br />This only happens once after inactivity.</>
+          ) : "Loading…"}
         </p>
       </div>
     </div>
