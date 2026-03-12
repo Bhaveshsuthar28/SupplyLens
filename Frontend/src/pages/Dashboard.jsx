@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [category, setCategory] = useState("All Categories");
   const [grade, setGrade] = useState("All Grades");
   const [timePeriod, setTimePeriod] = useState("Last 6 Months");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const { data: suppliers = [], isLoading: loading } = useQuery({
     queryKey: queryKeys.suppliers.all(),
@@ -202,7 +203,33 @@ export default function Dashboard() {
             Supplier Performance <span className="font-normal">Analytics Dashboard</span>
           </h1>
         </div>
+        <button
+          className="lg:hidden flex items-center gap-1.5 h-8 px-3 text-xs border border-primary text-primary rounded hover:bg-primary/10 transition-colors font-sans"
+          onClick={() => setFiltersOpen((f) => !f)}
+        >
+          <Filter className="w-3 h-3" />
+          Filters {filtersOpen ? "▲" : "▼"}
+        </button>
       </div>
+
+      {/* Mobile filter panel */}
+      {filtersOpen && (
+        <div className="lg:hidden mb-5">
+          <FilterPanel title="Filters">
+            <FilterSelect label="All Categories" value={category} onChange={setCategory} options={CATEGORIES} />
+            <FilterSelect label="All Grades" value={grade} onChange={setGrade} options={GRADES} />
+            <FilterSelect label="Time Period" value={timePeriod} onChange={setTimePeriod} options={["Last 6 Months", "Last 3 Months", "Last Month", "Last Year"]} />
+            <div className="flex gap-2 mt-3">
+              <button onClick={handleApplyFilters} className="flex-1 h-8 bg-primary text-primary-foreground text-xs font-sans font-medium rounded hover:opacity-90 transition-opacity">
+                Apply Filters
+              </button>
+              <button onClick={handleExportCSV} className="flex-1 h-8 border border-primary text-primary text-xs font-sans font-medium rounded hover:bg-primary/10 transition-colors flex items-center justify-center gap-1">
+                <Download className="w-3 h-3" /> Export CSV
+              </button>
+            </div>
+          </FilterPanel>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-5">
         {/* Main content */}
@@ -265,22 +292,24 @@ export default function Dashboard() {
           {/* Row 3: 3 charts */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <ChartCard title="Supplier Score Distribution">
-              <div className="flex items-center gap-4">
-                <ResponsiveContainer width="55%" height={200}>
-                  <PieChart>
-                    <Pie data={gradeDistribution} cx="50%" cy="50%" innerRadius={45} outerRadius={75} dataKey="value" nameKey="name" stroke="none">
-                      {gradeDistribution.map((entry, i) => (
-                        <Cell key={i} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="space-y-2 text-xs">
+              <div className="flex items-center gap-3 min-h-[165px]">
+                <div className="w-[130px] h-[165px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={gradeDistribution} cx="50%" cy="50%" innerRadius={38} outerRadius={60} dataKey="value" nameKey="name" stroke="none">
+                        {gradeDistribution.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-2 text-xs min-w-0">
                   {gradeDistribution.map((g) => (
                     <div key={g.name} className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center text-white" style={{ background: g.color }}>{g.name}</span>
-                      <span className="text-sidebar-foreground font-mono">{g.name} ···· {g.percentage}%</span>
+                      <span className="w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center text-white shrink-0" style={{ background: g.color }}>{g.name}</span>
+                      <span className="text-sidebar-foreground font-mono truncate">{g.name} ···· {g.percentage}%</span>
                     </div>
                   ))}
                 </div>
@@ -378,25 +407,12 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Right Sidebar - Filters */}
-        <div className="space-y-5">
+        {/* Right Sidebar - Filters (desktop only) */}
+        <div className="hidden lg:block space-y-5">
           <FilterPanel title="Filters">
             <FilterSelect label="All Categories" value={category} onChange={setCategory} options={CATEGORIES} />
             <FilterSelect label="All Grades" value={grade} onChange={setGrade} options={GRADES} />
             <FilterSelect label="Time Period" value={timePeriod} onChange={setTimePeriod} options={["Last 6 Months", "Last 3 Months", "Last Month", "Last Year"]} />
-            <div className="flex gap-2 mt-3">
-              <button onClick={handleApplyFilters} className="flex-1 h-8 bg-primary text-primary-foreground text-xs font-sans font-medium rounded hover:opacity-90 transition-opacity">
-                Apply Filters
-              </button>
-              <button onClick={handleExportCSV} className="flex-1 h-8 border border-primary text-primary text-xs font-sans font-medium rounded hover:bg-primary/10 transition-colors flex items-center justify-center gap-1">
-                <Download className="w-3 h-3" /> Export CSV
-              </button>
-            </div>
-          </FilterPanel>
-
-          <FilterPanel title="Filter Panel">
-            <FilterSelect label="All Categories" value={category} onChange={setCategory} options={CATEGORIES} />
-            <FilterSelect label="All Grades" value={grade} onChange={setGrade} options={GRADES} />
             <div className="flex gap-2 mt-3">
               <button onClick={handleApplyFilters} className="flex-1 h-8 bg-primary text-primary-foreground text-xs font-sans font-medium rounded hover:opacity-90 transition-opacity">
                 Apply Filters

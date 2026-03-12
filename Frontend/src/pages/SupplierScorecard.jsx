@@ -149,7 +149,7 @@ function EmailModal({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden gap-0">
+      <DialogContent className="max-w-2xl p-0 gap-0 flex flex-col max-h-[90vh] overflow-hidden">
         {/* Header stripe */}
         <div className={`px-6 py-4 flex items-center gap-3 ${isD ? 'bg-destructive' : 'bg-orange-500'}`}>
           <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -184,7 +184,7 @@ function EmailModal({
         </div>
 
         {/* Form */}
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-6 py-5 space-y-4 overflow-y-auto flex-1">
           <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">From</label>
             <input
@@ -217,7 +217,7 @@ function EmailModal({
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              rows={12}
+              rows={8}
               className="w-full px-3 py-2.5 text-xs font-mono border border-border rounded-md bg-background text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary/30 leading-relaxed"
             />
           </div>
@@ -375,7 +375,7 @@ export default function SupplierScorecard() {
       </div>
 
       {/* Header Card */}
-      <div className="bg-sidebar text-sidebar-foreground rounded-lg p-6 mb-6">
+      <div className="bg-sidebar text-sidebar-foreground rounded-lg p-4 sm:p-6 mb-6">
         <div className="flex flex-wrap items-start gap-4 sm:gap-5">
           <div className="flex flex-col items-center">
             <GradeBadge grade={supplier.grade} size="lg" />
@@ -407,33 +407,33 @@ export default function SupplierScorecard() {
 
       {/* Metrics + Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div className="border border-border rounded-lg p-6 bg-card space-y-0">
-          <div className="flex items-center justify-between border-b border-border py-4">
-            <span className="font-semibold text-foreground">On-Time Delivery</span>
-            <div className="flex items-center gap-3">
+        <div className="border border-border rounded-lg p-4 sm:p-6 bg-card space-y-0">
+          <div className="flex flex-wrap items-center justify-between border-b border-border py-3 sm:py-4 gap-y-1">
+            <span className="font-semibold text-foreground text-sm sm:text-base">On-Time Delivery</span>
+            <div className="flex items-center gap-2 sm:gap-3">
               <span className={`${otdStatus.color}`}>{otdStatus.icon}</span>
-              <span className="font-mono font-bold text-xl text-foreground">{supplier.otd}%</span>
+              <span className="font-mono font-bold text-base sm:text-xl text-foreground">{supplier.otd}%</span>
               <span className={`text-sm font-medium ${otdStatus.color}`}>{otdStatus.label}</span>
             </div>
           </div>
-          <div className="flex items-center justify-between border-b border-border py-4">
-            <span className="font-semibold text-foreground">Fill Rate</span>
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between border-b border-border py-3 sm:py-4 gap-y-1">
+            <span className="font-semibold text-foreground text-sm sm:text-base">Fill Rate</span>
+            <div className="flex items-center gap-2 sm:gap-3">
               <span className={`${fillStatus.color}`}>{fillStatus.icon}</span>
-              <span className="font-mono font-bold text-xl text-foreground">{supplier.fillRate}%</span>
+              <span className="font-mono font-bold text-base sm:text-xl text-foreground">{supplier.fillRate}%</span>
               <span className={`text-sm font-medium ${fillStatus.color}`}>{fillStatus.label}</span>
             </div>
           </div>
-          <div className="flex items-center justify-between border-b border-border py-4">
-            <span className="font-semibold text-foreground">Quality Rejection</span>
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between border-b border-border py-3 sm:py-4 gap-y-1">
+            <span className="font-semibold text-foreground text-sm sm:text-base">Quality Rejection</span>
+            <div className="flex items-center gap-2 sm:gap-3">
               <span className={`${rejectStatus.color}`}>{rejectStatus.icon}</span>
-              <span className="font-mono font-bold text-xl text-foreground">{supplier.rejectRate}%</span>
+              <span className="font-mono font-bold text-base sm:text-xl text-foreground">{supplier.rejectRate}%</span>
               <span className={`text-sm font-medium ${rejectStatus.color}`}>{rejectStatus.label}</span>
             </div>
           </div>
-          <div className="flex items-center justify-between pt-4">
-            <span className="font-semibold text-foreground">Overall Composite Score</span>
+          <div className="flex flex-wrap items-center justify-between pt-3 sm:pt-4 gap-y-1">
+            <span className="font-semibold text-foreground text-sm sm:text-base">Overall Composite Score</span>
             <div className="flex items-center gap-2">
               <span className={`font-mono font-bold text-2xl ${
                 supplier.grade === 'D' ? 'text-destructive' :
@@ -450,7 +450,7 @@ export default function SupplierScorecard() {
           </div>
         </div>
 
-        <div className="border border-border rounded-lg p-6 bg-card">
+        <div className="border border-border rounded-lg p-4 sm:p-6 bg-card">
           <h3 className="text-sm font-semibold text-foreground mb-4">Composite Score Trend</h3>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={chartData}>

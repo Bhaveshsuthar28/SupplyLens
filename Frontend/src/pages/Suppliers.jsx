@@ -122,7 +122,7 @@ export default function Suppliers() {
         </select>
         <input type="text" placeholder="Search supplier..." value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="h-9 px-3 border border-border rounded text-sm font-sans bg-background text-foreground w-56" />
+          className="h-9 px-3 border border-border rounded text-sm font-sans bg-background text-foreground w-full sm:w-56" />
         <span className="ml-auto text-xs text-muted-foreground font-mono">
           {total} entries
         </span>
