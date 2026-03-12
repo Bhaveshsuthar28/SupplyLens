@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams, Link } from "react-router-dom";
+import { useUser } from "@clerk/react";
+import { useAuthContext } from "@/context/AuthContext";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { getGradeLabel, getGrade } from "@/lib/supplierData";
 import { GradeBadge } from "@/components/GradeBadge";
@@ -112,6 +114,13 @@ function EmailModal({
   onSent,
   onFailed,
 }) {
+  const { user: clerkUser } = useUser();
+  const { user: authUser } = useAuthContext();
+  const senderEmail =
+    clerkUser?.primaryEmailAddress?.emailAddress ||
+    authUser?.email ||
+    "";
+
   const [to, setTo] = useState("procurement-team@company.com");
   const [subject, setSubject] = useState(buildEmailSubject(supplier));
   const [body, setBody] = useState(buildEmailBody(supplier));
@@ -122,22 +131,15 @@ function EmailModal({
   const handleSend = async () => {
     setSending(true);
     try {
-      const res = await fetch(import.meta.env.VITE_FORMSPREE_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          email: to,
-          _subject: subject,
-          message: body,
-          supplier_name: supplier.name,
-          supplier_grade: supplier.grade,
-        }),
+      await api.post("/api/v1/email/send", {
+        to_email: to,
+        subject,
+        message: body,
       });
-      if (!res.ok) throw new Error(`Formspree error: ${res.status}`);
       onClose();
       onSent();
     } catch (err) {
-      console.error("Formspree error:", err);
+      console.error("Email send error:", err);
       onClose();
       onFailed();
     } finally {
@@ -183,6 +185,15 @@ function EmailModal({
 
         {/* Form */}
         <div className="px-6 py-5 space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">From</label>
+            <input
+              readOnly
+              value={senderEmail || "—"}
+              className="w-full h-9 px-3 text-sm border border-border rounded-md bg-muted/30 text-muted-foreground cursor-not-allowed"
+            />
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">To</label>
             <input
@@ -307,7 +318,7 @@ export default function SupplierScorecard() {
   const handleFailed = () => {
     toast({
       title: "❌ Email Failed to Send",
-      description: "Please check your EmailJS credentials in the .env file and try again.",
+      description: "Could not send the alert email. Please try again.",
       variant: "destructive",
     });
   };
