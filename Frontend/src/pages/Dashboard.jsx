@@ -87,8 +87,8 @@ export default function Dashboard() {
     return buckets;
   }, [filtered]);
 
-  // Performance Trend — fetched from backend (composite > 0 only)
-  const { data: performanceTrendRaw = [] } = useQuery({
+  // Performance Trend — fetched from backend, computed live from KPIs
+  const { data: trendRaw = [] } = useQuery({
     queryKey: queryKeys.metrics.trend(category, grade),
     queryFn: () => {
       const params = new URLSearchParams();
@@ -99,14 +99,11 @@ export default function Dashboard() {
     },
   });
 
-  // Format ISO date "2026-03-13" → "Mar 13" for chart labels
-  const performanceTrend = performanceTrendRaw.map((r) => ({
-    ...r,
-    week: (() => {
-      const d = new Date(r.week);
-      return isNaN(d) ? r.week : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    })(),
-  }));
+  // Format ISO date labels: "2026-03-13" → "Mar 13"
+  const performanceTrend = trendRaw.map((r) => {
+    const d = new Date(r.week);
+    return { ...r, week: isNaN(d) ? r.week : d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) };
+  });
 
   // Grade Distribution (donut)
   const gradeDistribution = useMemo(() => {
@@ -291,7 +288,7 @@ export default function Dashboard() {
             <ChartCard title="Performance Trend">
               {performanceTrend.length === 0 ? (
                 <div className="h-[200px] flex items-center justify-center text-xs font-mono text-slate-500">
-                  No weekly score data yet — upload a CSV to see trends
+                  No data yet — upload a CSV to see weekly trends
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={200}>

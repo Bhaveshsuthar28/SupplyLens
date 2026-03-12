@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
@@ -187,3 +187,62 @@ def recalculate_weights(payload: WeightsBody, db: Session = Depends(get_db)):
         "weights_applied": result["weights_applied"],
         "impact_summary":  result["impact_summary"],
     }
+
+
+# ── Performance Trend ─────────────────────────────────────────────────────────
+
+@router.get("/weekly-trend", summary="Avg composite score per week, computed live from KPIs")
+def weekly_trend(
+    category: str = Query(None),
+    grade:    str = Query(None, pattern="^[ABCD]$"),
+    db:       Session = Depends(get_db),
+):
+    """
+    Computes avg composite on the fly from stored KPI values using the active
+    MetricConfig weights. This bypasses any stale/zero values in the composite
+    column and always reflects the most recent weight configuration.
+    Only rows where at least one KPI is non-zero are included.
+    """
+    cfg = _get_or_create_config(db)
+
+    # Build composite expression from KPI columns + active weights
+    composite_expr = (
+        cfg.weight_otd * WeeklyScore.otd
+        + cfg.weight_fr  * WeeklyScore.fill_rate
+        + cfg.weight_qr  * (100.0 - WeeklyScore.reject_rate)
+    )
+
+    q = (
+        db.query(WeeklyScore.week, func.avg(composite_expr).label("avg"))
+        .join(WeeklyScore.supplier)
+        # Exclude rows where ALL KPIs are 0 (genuinely missing data)
+        .filter(WeeklyScore.otd + WeeklyScore.fill_rate + WeeklyScore.reject_rate > 0)
+    )
+    if category:
+        q = q.filter(Supplier.category == category)
+    if grade:
+        q = q.filter(Supplier.grade == grade)
+
+    rows = q.group_by(WeeklyScore.week).order_by(WeeklyScore.week).all()
+    return [{"week": r.week, "avg": round(r.avg or 0)} for r in rows]
+
+
+@router.post("/fix-composites", summary="One-time: recalculate zero-composite weekly scores")
+def fix_composites(db: Session = Depends(get_db)):
+    """Recalculates WeeklyScore.composite from stored KPIs for any row where composite=0."""
+    cfg = _get_or_create_config(db)
+    rows = db.query(WeeklyScore).filter(WeeklyScore.composite == 0).all()
+    fixed = 0
+    for row in rows:
+        if row.otd == 0 and row.fill_rate == 0 and row.reject_rate == 0:
+            continue
+        new_val = round(
+            cfg.weight_otd * row.otd
+            + cfg.weight_fr  * row.fill_rate
+            + cfg.weight_qr  * (100.0 - row.reject_rate)
+        )
+        if new_val > 0:
+            row.composite = new_val
+            fixed += 1
+    db.commit()
+    return {"fixed": fixed, "scanned": len(rows)}
