@@ -13,8 +13,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth as useClerkAuth } from "@clerk/react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuthContext } from "@/context/AuthContext";
-import { injectAuthHandlers } from "@/lib/apiClient";
+import { injectAuthHandlers, api } from "@/lib/apiClient";
+import { queryKeys } from "@/lib/queryKeys";
+import { normalizeSupplierList } from "@/lib/normalizers";
 
 function LoadingScreen() {
   return (
@@ -31,14 +34,34 @@ export default function ProtectedRoute({ children }) {
   const { isLoaded, isSignedIn } = useClerkAuth();
   const { accessToken, isReady, exchange, refresh, clearAuth } = useAuthContext();
   const [error, setError] = useState(null);
+  const queryClient = useQueryClient();
 
   // Ref prevents double-triggering exchange when dependencies are recreated
   const exchangeStarted = useRef(false);
+  // Ref prevents double-firing the prefetch across re-renders
+  const prefetchDone = useRef(false);
 
   // Inject auth handlers once — stable because accessToken update triggers re-inject
   useEffect(() => {
     injectAuthHandlers({ getToken: () => accessToken, refresh, clearAuth });
   }, [accessToken, refresh, clearAuth]);
+
+  // Silently prefetch common data right after auth so Dashboard and Metrics
+  // pages render instantly from cache instead of showing a spinner.
+  useEffect(() => {
+    if (!isReady || !accessToken || prefetchDone.current) return;
+    prefetchDone.current = true;
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.suppliers.all(),
+      queryFn:  () =>
+        api.get("/api/v1/suppliers/?page=1&page_size=500")
+          .then((r) => normalizeSupplierList(r.data)),
+    });
+    queryClient.prefetchQuery({
+      queryKey: queryKeys.metrics.summary(),
+      queryFn:  () => api.get("/api/v1/metrics/summary"),
+    });
+  }, [isReady, accessToken, queryClient]);
 
   // Trigger exchange exactly once per session when Clerk is ready but no backend token
   useEffect(() => {
