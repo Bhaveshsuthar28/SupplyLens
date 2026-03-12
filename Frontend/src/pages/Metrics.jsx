@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/apiClient";
 import { queryKeys } from "@/lib/queryKeys";
@@ -6,18 +6,13 @@ import { TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
 
 const defaultWeights = { otd: 40, fillRate: 30, quality: 30 };
 
-const STORAGE_KEY = "supplylens_weights";
-
-function loadWeights() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return defaultWeights;
-}
-
-function saveWeights(w) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(w)); } catch {}
+// Convert DB fractions {weight_otd:0.4} → display percentages {otd:40}
+function fromDB(cfg) {
+  return {
+    otd:      Math.round((cfg?.weight_otd ?? 0.40) * 100),
+    fillRate: Math.round((cfg?.weight_fr  ?? 0.30) * 100),
+    quality:  Math.round((cfg?.weight_qr  ?? 0.30) * 100),
+  };
 }
 const gradeTiers = [
   { grade: 'A', range: '95–100', label: 'Strategic Partner', color: 'bg-success' },
@@ -40,11 +35,27 @@ function RatingPill({ r }) {
 
 export default function Metrics() {
   const queryClient = useQueryClient();
-  const [weights, setWeights]               = useState(loadWeights);
-  const [appliedWeights, setAppliedWeights] = useState(loadWeights);
+  const [weights, setWeights]               = useState(defaultWeights);
+  const [appliedWeights, setAppliedWeights] = useState(defaultWeights);
   const [recalculating, setRecalculating]   = useState(false);
   const [impact, setImpact]                 = useState(null);
   const [recalcError, setRecalcError]       = useState(null);
+  const configLoaded = useRef(false);
+
+  // Load saved weights from DB on mount — single source of truth across all devices
+  const { data: configData } = useQuery({
+    queryKey: queryKeys.metrics.config(),
+    queryFn:  () => api.get("/api/v1/metrics/config"),
+  });
+
+  // Sync state once when the config loads — doesn't override unsaved user edits
+  useEffect(() => {
+    if (!configData || configLoaded.current) return;
+    configLoaded.current = true;
+    const w = fromDB(configData);
+    setWeights(w);
+    setAppliedWeights(w);
+  }, [configData]);
 
   const { data: summary } = useQuery({
     queryKey: queryKeys.metrics.summary(),
@@ -77,10 +88,10 @@ export default function Metrics() {
       });
       setImpact(result.impact_summary);
       setAppliedWeights({ ...weights });
-      saveWeights({ ...weights });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() }),
         queryClient.invalidateQueries({ queryKey: queryKeys.metrics.all() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.metrics.config() }),
       ]);
     } catch (err) {
       setRecalcError(err.message);

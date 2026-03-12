@@ -12,6 +12,7 @@ export const queryKeys = {
   metrics: {
     all:     ()                => ["metrics"],
     summary: ()                => ["metrics", "summary"],
+    config:  ()                => ["metrics", "config"],
     trend:   (category, grade) => ["metrics", "trend", category, grade],
   },
 };

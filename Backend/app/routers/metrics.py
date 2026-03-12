@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from app.database import get_db
-from app.models.supplier import Supplier, WeeklyScore
+from app.models.supplier import Supplier, WeeklyScore, MetricConfig
 from app.core.security import verify_access_token
 from app.agents import weight_recalculation as wr_agent
 
@@ -13,6 +13,29 @@ router = APIRouter(
     tags=["Metrics"],
     dependencies=[Depends(verify_access_token)],  # protects every route
 )
+
+
+# ── MetricConfig helper ───────────────────────────────────────────────────────
+
+def _get_or_create_config(db: Session) -> MetricConfig:
+    """Return the single MetricConfig row, creating it with defaults if absent."""
+    cfg = db.query(MetricConfig).filter(MetricConfig.id == 1).first()
+    if cfg is None:
+        cfg = MetricConfig(id=1, weight_otd=0.40, weight_fr=0.30, weight_qr=0.30)
+        db.add(cfg)
+        db.commit()
+        db.refresh(cfg)
+    return cfg
+
+
+@router.get("/config", summary="Get active scoring weights")
+def get_config(db: Session = Depends(get_db)):
+    cfg = _get_or_create_config(db)
+    return {
+        "weight_otd": cfg.weight_otd,
+        "weight_fr":  cfg.weight_fr,
+        "weight_qr":  cfg.weight_qr,
+    }
 
 
 @router.get("/summary", summary="Aggregated KPI summary")
@@ -149,6 +172,13 @@ def recalculate_weights(payload: WeightsBody, db: Session = Depends(get_db)):
             supplier.grade = nr
         supplier.trend = t
 
+    db.commit()
+
+    # Persist the new weights so every future upload uses them automatically
+    cfg = _get_or_create_config(db)
+    cfg.weight_otd = payload.new_weights["weight_otd"]
+    cfg.weight_fr  = payload.new_weights["weight_fr"]
+    cfg.weight_qr  = payload.new_weights["weight_qr"]
     db.commit()
 
     # Return impact summary only (skip bulk recalculated_records to keep response lean)

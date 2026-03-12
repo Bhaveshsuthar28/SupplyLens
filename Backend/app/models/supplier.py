@@ -67,3 +67,17 @@ class WeeklyScore(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     supplier = relationship("Supplier", back_populates="weekly_scores")
+
+
+class MetricConfig(Base):
+    """Single-row table that stores the active scoring weights.
+
+    id is always 1 — use _get_or_create_config() to access it.
+    """
+    __tablename__ = "metric_config"
+
+    id         = Column(Integer, primary_key=True, default=1)
+    weight_otd = Column(Float, nullable=False, default=0.40)
+    weight_fr  = Column(Float, nullable=False, default=0.30)
+    weight_qr  = Column(Float, nullable=False, default=0.30)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

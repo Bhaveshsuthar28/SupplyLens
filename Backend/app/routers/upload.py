@@ -31,7 +31,7 @@ from app.agents import trend_forecast as trend_agent
 from app.core.config import get_settings
 from app.core.security import CurrentUser, verify_access_token
 from app.database import SessionLocal
-from app.models.supplier import Supplier, WeeklyScore
+from app.models.supplier import Supplier, WeeklyScore, MetricConfig
 from app.services.mail_service import send_supplier_alert
 
 _logger = logging.getLogger(__name__)
@@ -326,9 +326,6 @@ async def _run_pipeline(
 async def upload_file(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
-    weight_otd: float = Form(default=0.40),
-    weight_fr:  float = Form(default=0.30),
-    weight_qr:  float = Form(default=0.30),
     current_user: CurrentUser = Depends(verify_access_token),
 ):
     """
@@ -352,8 +349,18 @@ async def upload_file(
     if not raw_rows:
         raise HTTPException(status_code=400, detail="File is empty or has no valid rows")
 
-    job_id  = str(uuid.uuid4())
-    weights = {"weight_otd": weight_otd, "weight_fr": weight_fr, "weight_qr": weight_qr}
+    # Read active scoring weights from DB (falls back to 0.4/0.3/0.3 if not yet configured)
+    _db = SessionLocal()
+    try:
+        cfg = _db.query(MetricConfig).filter(MetricConfig.id == 1).first()
+        if cfg:
+            weights = {"weight_otd": cfg.weight_otd, "weight_fr": cfg.weight_fr, "weight_qr": cfg.weight_qr}
+        else:
+            weights = {"weight_otd": 0.40, "weight_fr": 0.30, "weight_qr": 0.30}
+    finally:
+        _db.close()
+
+    job_id = str(uuid.uuid4())
     _job_set(job_id, {"status": "processing", "ts": datetime.now()})
 
     background_tasks.add_task(
