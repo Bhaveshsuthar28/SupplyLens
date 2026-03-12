@@ -87,14 +87,26 @@ export default function Dashboard() {
     return buckets;
   }, [filtered]);
 
-  // Performance Trend (from weekly scores)
-  const performanceTrend = useMemo(() => {
-    const weeks = ["Week 1", "Week 2", "Week 3", "Week 4"];
-    return weeks.map((w) => {
-      const scores = filtered.map((s) => s.weeklyScores.find((ws) => ws.week === w)?.composite || 0).filter(Boolean);
-      return { week: w.replace("Week ", "W"), avg: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0 };
-    });
-  }, [filtered]);
+  // Performance Trend — fetched from backend (composite > 0 only)
+  const { data: performanceTrendRaw = [] } = useQuery({
+    queryKey: queryKeys.metrics.trend(category, grade),
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (category !== "All Categories") params.set("category", category);
+      if (grade !== "All Grades") params.set("grade", grade);
+      const qs = params.toString();
+      return api.get(`/api/v1/metrics/weekly-trend${qs ? `?${qs}` : ""}`);
+    },
+  });
+
+  // Format ISO date "2026-03-13" → "Mar 13" for chart labels
+  const performanceTrend = performanceTrendRaw.map((r) => ({
+    ...r,
+    week: (() => {
+      const d = new Date(r.week);
+      return isNaN(d) ? r.week : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    })(),
+  }));
 
   // Grade Distribution (donut)
   const gradeDistribution = useMemo(() => {
@@ -277,15 +289,21 @@ export default function Dashboard() {
             </ChartCard>
 
             <ChartCard title="Performance Trend">
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={performanceTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,11%,25%)" />
-                  <XAxis dataKey="week" tick={chartStyle} stroke="hsl(210,14%,50%)" />
-                  <YAxis domain={["auto", "auto"]} tick={chartStyle} stroke="hsl(210,14%,50%)" />
-                  <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
-                  <Line type="monotone" dataKey="avg" stroke="hsl(45,100%,51%)" strokeWidth={2} dot={{ r: 4, fill: "hsl(45,100%,51%)" }} name="Avg Score" />
-                </LineChart>
-              </ResponsiveContainer>
+              {performanceTrend.length === 0 ? (
+                <div className="h-[200px] flex items-center justify-center text-xs font-mono text-slate-500">
+                  No weekly score data yet — upload a CSV to see trends
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={performanceTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(210,11%,25%)" />
+                    <XAxis dataKey="week" tick={chartStyle} stroke="hsl(210,14%,50%)" />
+                    <YAxis domain={[0, 100]} tick={chartStyle} stroke="hsl(210,14%,50%)" />
+                    <Tooltip contentStyle={{ background: "#ffffff", border: "1px solid #bfdbfe", color: "#1e3a8a", fontFamily: "'IBM Plex Mono'", fontSize: 11, borderRadius: "6px", boxShadow: "0 4px 12px rgba(37,99,235,0.12)" }} />
+                    <Line type="monotone" dataKey="avg" stroke="hsl(45,100%,51%)" strokeWidth={2} dot={{ r: 4, fill: "hsl(45,100%,51%)" }} name="Avg Score" />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
             </ChartCard>
           </div>
 
