@@ -478,41 +478,6 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Supplier Scoring */}
-      <section>
-        <div className="container py-20">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Supplier Scoring</h2>
-          <p className="text-muted-foreground mb-12">Composite score formula and grade thresholds.</p>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-white/70 rounded-xl p-8 shadow-sm">
-              <h3 className="font-sans font-semibold text-foreground mb-4">Composite Score Formula</h3>
-              <div className="font-mono text-sm space-y-2 text-muted-foreground">
-                <p>Score = 0.40 × On-Time Delivery</p>
-                <p className="pl-12">+ 0.30 × Fill Rate</p>
-                <p className="pl-12">+ 0.30 × Quality Performance</p>
-              </div>
-            </div>
-            <div className="bg-white/70 rounded-xl p-8 shadow-sm">
-              <h3 className="font-sans font-semibold text-foreground mb-4">Grade Tiers</h3>
-              <div className="space-y-3">
-                {[
-                  { grade: "A", range: "95–100", label: "Strategic Partner", color: "bg-success" },
-                  { grade: "B", range: "85–94", label: "Reliable", color: "bg-primary" },
-                  { grade: "C", range: "70–84", label: "Needs Intervention", color: "bg-warning" },
-                  { grade: "D", range: "< 70", label: "Critical Risk / Replace", color: "bg-destructive" },
-                ].map((g) => (
-                  <div key={g.grade} className="flex items-center gap-3">
-                    <span className={`w-7 h-7 rounded flex items-center justify-center text-xs font-mono font-bold text-primary-foreground ${g.color}`}>{g.grade}</span>
-                    <span className="font-mono text-sm text-foreground">{g.range}</span>
-                    <span className="text-sm text-muted-foreground">({g.label})</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CTA section — only shown when not signed in */}
       {isLoaded && !isSignedIn && (
         <section className="bg-white border-t border-blue-100">
