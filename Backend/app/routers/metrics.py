@@ -79,6 +79,21 @@ def risk_suppliers(db: Session = Depends(get_db)):
     ]
 
 
+@router.post("/fix-composites", summary="One-time: recalculate zero-composite weekly scores from KPIs")
+def fix_composites(db: Session = Depends(get_db)):
+    rows = db.query(WeeklyScore).filter(WeeklyScore.composite == 0).all()
+    fixed = 0
+    for row in rows:
+        if row.otd == 0 and row.fill_rate == 0 and row.reject_rate == 0:
+            continue
+        new_val = round(0.40 * row.otd + 0.30 * row.fill_rate + 0.30 * (100.0 - row.reject_rate))
+        if new_val > 0:
+            row.composite = new_val
+            fixed += 1
+    db.commit()
+    return {"fixed": fixed, "scanned": len(rows)}
+
+
 @router.get("/weekly-trend", summary="Avg composite score per week (filterable)")
 def weekly_trend(
     category: str = Query(None),
