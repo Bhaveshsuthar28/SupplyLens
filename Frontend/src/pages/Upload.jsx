@@ -271,7 +271,7 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="p-4 sm:p-8 max-w-3xl">
+    <div className="p-4 sm:p-8 max-w-3xl mx-auto">
       <h1 className="text-2xl font-bold text-foreground mb-1">Data Ingestion</h1>
       <p className="text-sm text-muted-foreground mb-8">Upload CSV or Excel files containing procurement data.</p>
 

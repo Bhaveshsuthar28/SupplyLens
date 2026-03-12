@@ -160,7 +160,10 @@ def _upsert_bulk(supplier_results: list[dict], wsd: str) -> tuple[int, int]:
             kpis      = s["kpis"]
             trend_obj = s["trend"]
 
-            composite_int = round(score_obj["composite_score"]) if score_obj["composite_score"] is not None else 0
+            if score_obj["composite_score"] is None:
+                continue  # skip suppliers with no computable score
+
+            composite_int = round(score_obj["composite_score"])
             grade         = score_obj["rating"] or "D"
             trend_str     = trend_obj.get("trend_30d") or trend_obj.get("wow_direction") or "Stable"
             if trend_str in ("Insufficient Data", ""):

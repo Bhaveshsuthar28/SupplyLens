@@ -1,8 +1,39 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { AppSidebar } from "./AppSidebar";
 import { UploadProvider } from "@/context/UploadContext";
+
+const PAGE_TITLES = {
+  "/dashboard": "Analytics Dashboard",
+  "/suppliers": "Vendor Performance",
+  "/upload":    "Data Ingestion",
+  "/metrics":   "Evaluation Metrics",
+  "/profile":   "Profile",
+};
+
+function MobileTopBar({ onMenuClick }) {
+  const location = useLocation();
+  const title = Object.entries(PAGE_TITLES).find(([p]) =>
+    location.pathname.startsWith(p)
+  )?.[1] ?? "SupplyLens";
+
+  return (
+    <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-sidebar border-b border-sidebar-border flex items-center px-3 z-40 gap-3">
+      <button
+        onClick={onMenuClick}
+        className="p-2 rounded hover:bg-sidebar-accent transition-colors shrink-0"
+        aria-label="Open menu"
+      >
+        <Menu className="w-5 h-5 text-sidebar-foreground" />
+      </button>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-mono text-sidebar-foreground/50 leading-none">SupplyLens</p>
+        <p className="text-sm font-sans font-semibold text-sidebar-foreground truncate leading-tight mt-0.5">{title}</p>
+      </div>
+    </div>
+  );
+}
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -10,16 +41,7 @@ export function AppLayout() {
   return (
     <UploadProvider>
       <div className="min-h-screen bg-background">
-        {/* Mobile top bar */}
-        <div className="md:hidden fixed top-0 left-0 right-0 h-14 bg-sidebar border-b border-sidebar-border flex items-center px-4 z-40 gap-3">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-1.5 rounded hover:bg-sidebar-accent transition-colors"
-          >
-            <Menu className="w-5 h-5 text-sidebar-foreground" />
-          </button>
-          <span className="font-sans font-bold text-sidebar-foreground">SupplyLens</span>
-        </div>
+        <MobileTopBar onMenuClick={() => setSidebarOpen(true)} />
 
         {/* Overlay */}
         {sidebarOpen && (

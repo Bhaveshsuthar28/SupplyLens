@@ -2,10 +2,10 @@ import { SignIn } from "@clerk/react";
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="flex flex-col items-center gap-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-4 py-8">
+      <div className="flex flex-col items-center gap-5 w-full max-w-sm sm:max-w-none sm:w-auto">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-white tracking-tight">SupplyLens</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">SupplyLens</h1>
           <p className="text-slate-400 mt-1 text-sm">Supplier Intelligence Platform</p>
         </div>
         <SignIn
@@ -15,8 +15,8 @@ export default function SignInPage() {
           forceRedirectUrl="/dashboard"
           appearance={{
             elements: {
-              rootBox: "shadow-2xl rounded-2xl overflow-hidden",
-              card: "bg-slate-800 border border-slate-700",
+              rootBox: "w-full sm:w-auto shadow-lg sm:shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden",
+              card: "w-full bg-slate-800 border border-slate-700",
               headerTitle: "text-white",
               headerSubtitle: "text-slate-400",
               formFieldLabel: "text-slate-300",

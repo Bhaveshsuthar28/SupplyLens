@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
@@ -77,6 +77,25 @@ def risk_suppliers(db: Session = Depends(get_db)):
         }
         for s in rows
     ]
+
+
+@router.get("/weekly-trend", summary="Avg composite score per week (filterable)")
+def weekly_trend(
+    category: str = Query(None),
+    grade: str = Query(None, pattern="^[ABCD]$"),
+    db: Session = Depends(get_db),
+):
+    q = (
+        db.query(WeeklyScore.week, func.avg(WeeklyScore.composite).label("avg"))
+        .join(WeeklyScore.supplier)
+    )
+    if category:
+        q = q.filter(Supplier.category == category)
+    if grade:
+        q = q.filter(Supplier.grade == grade)
+    q = q.filter(WeeklyScore.composite > 0)
+    rows = q.group_by(WeeklyScore.week).order_by(WeeklyScore.week).all()
+    return [{"week": r.week, "avg": round(r.avg or 0)} for r in rows]
 
 
 # ── Weight Recalculation ──────────────────────────────────────────────────────

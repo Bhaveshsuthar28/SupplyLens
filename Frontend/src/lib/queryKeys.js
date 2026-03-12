@@ -10,7 +10,8 @@ export const queryKeys = {
   },
   // Metrics queries
   metrics: {
-    all:     ()  => ["metrics"],
-    summary: ()  => ["metrics", "summary"],
+    all:     ()             => ["metrics"],
+    summary: ()             => ["metrics", "summary"],
+    trend:   (category, grade) => ["metrics", "trend", category, grade],
   },
 };

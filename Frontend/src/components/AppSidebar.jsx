@@ -11,10 +11,10 @@ import { useUploadContext } from "@/context/UploadContext";
 import SignOutConfirm from "@/components/SignOutConfirm";
 
 const navItems = [
-  { to: "/dashboard",  label: "Analytics Dashboard",         icon: LayoutDashboard },
-  { to: "/suppliers",  label: "Vendor Performance Overview", icon: Users },
-  { to: "/upload",     label: "Data Ingestion",              icon: Upload },
-  { to: "/metrics",    label: "Change Evaluation Metric",    icon: Settings },
+  { to: "/dashboard",  label: "Analytics Dashboard",    icon: LayoutDashboard },
+  { to: "/suppliers",  label: "Vendor Performance",     icon: Users },
+  { to: "/upload",     label: "Data Ingestion",         icon: Upload },
+  { to: "/metrics",    label: "Evaluation Metrics",     icon: Settings },
 ];
 
 function SidebarAvatar({ imageUrl, name }) {
@@ -84,7 +84,7 @@ export function AppSidebar({ open, onClose }) {
               to={item.to}
               onClick={onClose}
               className={cn(
-                "flex items-center gap-3 px-5 py-3 text-sm font-sans transition-colors relative",
+                "flex items-center gap-3 px-5 py-3.5 text-sm font-sans transition-colors relative select-none",
                 isActive
                   ? "text-sidebar-primary-foreground bg-sidebar-accent"
                   : "text-sidebar-foreground hover:bg-sidebar-accent"
@@ -93,8 +93,8 @@ export function AppSidebar({ open, onClose }) {
               {isActive && (
                 <span className="absolute left-0 top-1 bottom-1 w-0.5 bg-sidebar-primary rounded-r" />
               )}
-              <item.icon className="w-4 h-4" />
-              {item.label}
+              <item.icon className="w-4 h-4 shrink-0" />
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}

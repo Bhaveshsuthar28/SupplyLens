@@ -111,7 +111,7 @@ export default function Suppliers() {
       <p className="text-sm text-muted-foreground mb-8">Track and evaluate supplier performance over the past six months.</p>
 
       {/* Filters */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
+      <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 mb-4">
         <select value={category} onChange={(e) => handleCategory(e.target.value)}
           className="h-9 px-3 border border-border rounded text-sm font-sans bg-background text-foreground">
           {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
@@ -122,8 +122,8 @@ export default function Suppliers() {
         </select>
         <input type="text" placeholder="Search supplier..." value={search}
           onChange={(e) => handleSearch(e.target.value)}
-          className="h-9 px-3 border border-border rounded text-sm font-sans bg-background text-foreground w-full sm:w-56" />
-        <span className="ml-auto text-xs text-muted-foreground font-mono">
+          className="h-9 px-3 border border-border rounded text-sm font-sans bg-background text-foreground col-span-2 sm:col-span-1 sm:w-56" />
+        <span className="col-span-2 sm:col-span-1 sm:ml-auto text-xs text-muted-foreground font-mono">
           {total} entries
         </span>
       </div>
@@ -136,18 +136,18 @@ export default function Suppliers() {
 
       {/* Table */}
       <div className="border border-border shadow-crisp overflow-x-auto rounded-lg">
-        <table className="w-full text-sm min-w-[640px]">
+        <table className="w-full text-sm min-w-[480px]">
           <thead>
             <tr className="bg-card border-b border-border">
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden sm:table-cell">ID</th>
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Supplier Name</th>
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden md:table-cell">Category</th>
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">OTD %</th>
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden sm:table-cell">Fill Rate %</th>
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Reject %</th>
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden md:table-cell">Trend (Last 30D)</th>
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Score</th>
-              <th className="text-left px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider"></th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden sm:table-cell">ID</th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Supplier Name</th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden md:table-cell">Category</th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">OTD %</th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden sm:table-cell">Fill Rate %</th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Reject %</th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider hidden md:table-cell">Trend (Last 30D)</th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider">Score</th>
+              <th className="text-left px-3 sm:px-4 py-3 font-sans font-medium text-muted-foreground text-xs uppercase tracking-wider"></th>
             </tr>
           </thead>
           <tbody>
@@ -162,16 +162,16 @@ export default function Suppliers() {
             ) : (
               suppliers.map((s) => (
                 <tr key={s.id} className="border-b border-border hover:bg-card transition-colors">
-                  <td className="px-4 py-3 font-mono text-muted-foreground hidden sm:table-cell">{s.id}</td>
-                  <td className="px-4 py-3 font-sans font-medium text-foreground">{s.name}</td>
-                  <td className="px-4 py-3 font-sans text-muted-foreground hidden md:table-cell">{s.category}</td>
-                  <td className="px-4 py-3 font-mono">{s.otd}%</td>
-                  <td className="px-4 py-3 font-mono hidden sm:table-cell">{s.fillRate}%</td>
-                  <td className="px-4 py-3 font-mono">{s.rejectRate}%</td>
-                  <td className="px-4 py-3 hidden md:table-cell"><TrendIndicator trend={s.trend} /></td>
-                  <td className="px-4 py-3"><GradeBadge grade={s.grade} size="sm" /></td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-3 sm:px-4 py-3 font-mono text-muted-foreground hidden sm:table-cell">{s.id}</td>
+                  <td className="px-3 sm:px-4 py-3 font-sans font-medium text-foreground">{s.name}</td>
+                  <td className="px-3 sm:px-4 py-3 font-sans text-muted-foreground hidden md:table-cell">{s.category}</td>
+                  <td className="px-3 sm:px-4 py-3 font-mono">{s.otd}%</td>
+                  <td className="px-3 sm:px-4 py-3 font-mono hidden sm:table-cell">{s.fillRate}%</td>
+                  <td className="px-3 sm:px-4 py-3 font-mono">{s.rejectRate}%</td>
+                  <td className="px-3 sm:px-4 py-3 hidden md:table-cell"><TrendIndicator trend={s.trend} /></td>
+                  <td className="px-3 sm:px-4 py-3"><GradeBadge grade={s.grade} size="sm" /></td>
+                  <td className="px-3 sm:px-4 py-3">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
                       <Link to={`/suppliers/${s.id}`}
                         className="inline-flex items-center justify-center h-7 px-3 bg-primary text-primary-foreground text-xs font-sans font-medium rounded hover:opacity-90 transition-opacity">
                         View
