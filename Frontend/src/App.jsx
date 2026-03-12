@@ -12,6 +12,7 @@ import Suppliers from "./pages/Suppliers";
 import SupplierScorecard from "./pages/SupplierScorecard";
 import UploadPage from "./pages/Upload";
 import Metrics from "./pages/Metrics";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 import SignInPage from "./pages/SignIn";
 import SignUpPage from "./pages/SignUp";
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/suppliers/:id" element={<SupplierScorecard />} />
               <Route path="/upload" element={<UploadPage />} />
               <Route path="/metrics" element={<Metrics />} />
+              <Route path="/profile/*" element={<Profile />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />

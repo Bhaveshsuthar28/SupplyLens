@@ -16,6 +16,7 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const { getToken, signOut: clerkSignOut } = useClerkAuth();
+
   const [accessToken, setAccessToken] = useState(
     () => sessionStorage.getItem("sl_access_token") || null
   );
@@ -23,7 +24,15 @@ export function AuthProvider({ children }) {
     const raw = sessionStorage.getItem("sl_user");
     return raw ? JSON.parse(raw) : null;
   });
+
+  // isReady: true once we have a token OR exchange has been attempted.
+  // Starts true if there's already a token in sessionStorage (returning session).
+  const [isReady, setIsReady] = useState(
+    () => !!sessionStorage.getItem("sl_access_token")
+  );
+
   const refreshingRef = useRef(false);
+  const exchangingRef = useRef(false); // prevents concurrent/duplicate exchange calls
 
   // ── Save token helpers ───────────────────────────────────────────────────
   const saveToken = (token, userInfo) => {
@@ -35,34 +44,41 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const clearAuth = () => {
+  const clearAuth = useCallback(() => {
     setAccessToken(null);
     setUser(null);
+    setIsReady(false);
     sessionStorage.removeItem("sl_access_token");
     sessionStorage.removeItem("sl_user");
-  };
+  }, []);
 
   // ── Exchange Clerk token for backend tokens ──────────────────────────────
   const exchange = useCallback(async () => {
-    const clerkToken = await getToken();
-    if (!clerkToken) throw new Error("No Clerk session token");
+    if (exchangingRef.current) return; // already in-flight, skip
+    exchangingRef.current = true;
+    try {
+      const clerkToken = await getToken();
+      if (!clerkToken) throw new Error("No Clerk session token");
 
-    const res = await fetch(`${API}/auth/exchange`, {
-      method: "POST",
-      credentials: "include",   // receive httpOnly refresh cookie
-      headers: { Authorization: `Bearer ${clerkToken}` },
-    });
+      const res = await fetch(`${API}/auth/exchange`, {
+        method: "POST",
+        credentials: "include", // receive httpOnly refresh cookie
+        headers: { Authorization: `Bearer ${clerkToken}` },
+      });
 
-    if (!res.ok) throw new Error(`Exchange failed: ${res.status}`);
+      if (!res.ok) throw new Error(`Exchange failed: ${res.status}`);
 
-    const data = await res.json();
-    saveToken(data.access_token, { user_id: data.user_id, email: data.email });
-    return data.access_token;
-  }, [getToken]);
+      const data = await res.json();
+      saveToken(data.access_token, { user_id: data.user_id, email: data.email });
+    } finally {
+      exchangingRef.current = false;
+      setIsReady(true); // mark ready regardless — error is surfaced via thrown error
+    }
+  }, [getToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Refresh access token using the httpOnly cookie ───────────────────────
   const refresh = useCallback(async () => {
-    if (refreshingRef.current) return null;   // prevent concurrent refreshes
+    if (refreshingRef.current) return null;
     refreshingRef.current = true;
     try {
       const res = await fetch(`${API}/auth/refresh`, {
@@ -79,7 +95,7 @@ export function AuthProvider({ children }) {
     } finally {
       refreshingRef.current = false;
     }
-  }, []);
+  }, [clearAuth]);
 
   // ── Logout ───────────────────────────────────────────────────────────────
   const logout = useCallback(async () => {
@@ -89,10 +105,10 @@ export function AuthProvider({ children }) {
     }).catch(() => {});
     clearAuth();
     await clerkSignOut();
-  }, [clerkSignOut]);
+  }, [clerkSignOut, clearAuth]);
 
   return (
-    <AuthContext.Provider value={{ accessToken, user, exchange, refresh, logout, clearAuth }}>
+    <AuthContext.Provider value={{ accessToken, user, isReady, exchange, refresh, logout, clearAuth }}>
       {children}
     </AuthContext.Provider>
   );
