@@ -1,11 +1,14 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   Upload as UploadIcon, FileSpreadsheet, Check, AlertCircle,
   ChevronDown, ChevronUp, TrendingUp, TrendingDown, Minus,
-  AlertTriangle, ShieldAlert, LayoutDashboard,
+  AlertTriangle, ShieldAlert, LayoutDashboard, Trash2,
 } from "lucide-react";
 import { useUploadContext } from "@/context/UploadContext";
+import { api } from "@/lib/apiClient";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ── Small helpers ──────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -254,9 +257,13 @@ function TrendForecastReport({ tf }) {
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function UploadPage() {
   const navigate = useNavigate();
-  const { file, uploading, jobId, result, error, selectFile, startUpload } = useUploadContext();
+  const queryClient = useQueryClient();
+  const { file, uploading, jobId, result, error, weekDate, setWeekDate, selectFile, startUpload } = useUploadContext();
 
   const [isDragging, setIsDragging] = useState(false);
+  const [resetConfirm, setResetConfirm] = useState(false);
+  const [resetting, setResetting]       = useState(false);
+  const [resetMsg, setResetMsg]         = useState(null);
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -268,6 +275,24 @@ export default function UploadPage() {
   const handleFileChange = (e) => {
     const f = e.target.files?.[0];
     if (f) selectFile(f);
+  };
+
+  const handleReset = async () => {
+    setResetting(true);
+    setResetMsg(null);
+    try {
+      const res = await api.delete("/api/v1/upload/weekly-scores");
+      setResetMsg(`Cleared ${res.deleted} weekly score records. Now re-upload your CSVs with the correct week dates.`);
+      setResetConfirm(false);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.metrics.all() }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.suppliers.all() }),
+      ]);
+    } catch (err) {
+      setResetMsg(`Error: ${err.message}`);
+    } finally {
+      setResetting(false);
+    }
   };
 
   return (
@@ -289,6 +314,18 @@ export default function UploadPage() {
           <input type="file" accept=".csv,.xlsx,.xls" className="hidden" onChange={handleFileChange} />
         </label>
         <p className="text-xs text-muted-foreground mt-3 font-mono">Supported: .csv, .xlsx, .xls</p>
+      </div>
+
+      {/* Week date picker */}
+      <div className="mt-4 flex items-center gap-3">
+        <label className="text-sm text-muted-foreground font-sans whitespace-nowrap">Week Start Date</label>
+        <input
+          type="date"
+          value={weekDate}
+          onChange={(e) => setWeekDate(e.target.value)}
+          className="h-9 px-3 border border-border rounded text-sm font-mono bg-background text-foreground"
+        />
+        <span className="text-xs text-muted-foreground font-mono">Each upload must use a different date to appear as a separate week in the trend chart.</span>
       </div>
 
       {/* File info + upload button */}
@@ -445,6 +482,48 @@ export default function UploadPage() {
         <p className="text-xs text-muted-foreground mt-3 font-mono">
           Column names are auto-detected — VendorID, due_date, quantity_ordered etc. are all accepted.
         </p>
+      </div>
+
+      {/* Reset weekly trend data */}
+      <div className="border border-destructive/30 p-5 mt-6 shadow-crisp">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="text-sm font-sans font-semibold text-foreground">Reset Weekly Trend Data</p>
+            <p className="text-xs text-muted-foreground font-mono mt-0.5">
+              Clears all weekly history so you can re-upload with the correct week dates. Suppliers are kept.
+            </p>
+          </div>
+          {!resetConfirm ? (
+            <button
+              onClick={() => setResetConfirm(true)}
+              className="inline-flex items-center gap-1.5 h-9 px-4 border border-destructive/50 text-destructive text-xs font-sans font-medium rounded hover:bg-destructive/5 transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Reset Trend History
+            </button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-destructive font-mono">Are you sure?</span>
+              <button
+                onClick={handleReset}
+                disabled={resetting}
+                className="inline-flex items-center h-8 px-3 bg-destructive text-destructive-foreground text-xs font-sans font-medium rounded hover:opacity-90 transition-opacity disabled:opacity-60"
+              >
+                {resetting ? "Clearing…" : "Yes, clear it"}
+              </button>
+              <button
+                onClick={() => setResetConfirm(false)}
+                className="inline-flex items-center h-8 px-3 border border-border text-xs font-sans font-medium rounded hover:bg-card transition-colors text-foreground"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+        {resetMsg && (
+          <p className={`mt-3 text-xs font-mono ${resetMsg.startsWith("Error") ? "text-destructive" : "text-success"}`}>
+            {resetMsg}
+          </p>
+        )}
       </div>
     </div>
   );

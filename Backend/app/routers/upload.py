@@ -30,8 +30,9 @@ from app.agents import preprocessing as preprocessing_agent
 from app.agents import trend_forecast as trend_agent
 from app.core.config import get_settings
 from app.core.security import CurrentUser, verify_access_token
-from app.database import SessionLocal
+from app.database import SessionLocal, get_db
 from app.models.supplier import Supplier, WeeklyScore, MetricConfig
+from sqlalchemy.orm import Session
 from app.services.mail_service import send_supplier_alert
 
 _logger = logging.getLogger(__name__)
@@ -215,6 +216,7 @@ async def _run_pipeline(
     raw_rows: list[dict],
     weights: dict,
     user_email: str,
+    week_date: str | None = None,
 ) -> None:
     """
     Full 3-agent pipeline. Runs non-blocking:
@@ -246,7 +248,7 @@ async def _run_pipeline(
         clean_data = prep_result["clean_data"]
 
         # ── Agent 2: Analytics ────────────────────────────────────────────
-        wsd = date.today().isoformat()
+        wsd = week_date or date.today().isoformat()
         analytics_result = await asyncio.to_thread(
             analytics_agent.run, clean_data, weights, wsd
         )
@@ -326,6 +328,7 @@ async def _run_pipeline(
 async def upload_file(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    week_date: str = Form(None),
     current_user: CurrentUser = Depends(verify_access_token),
 ):
     """
@@ -369,6 +372,7 @@ async def upload_file(
         raw_rows=raw_rows,
         weights=weights,
         user_email=current_user.email or "",
+        week_date=week_date,
     )
 
     return {"job_id": job_id, "status": "processing", "filename": filename}
@@ -394,3 +398,14 @@ def get_job_status(job_id: str):
     if job["status"] == "failed":
         return {"job_id": job_id, "status": "failed", "error": job.get("error")}
     return {"job_id": job_id, "status": "done", "result": job["result"]}
+
+
+@router.delete("/weekly-scores", summary="Clear all weekly score history (keeps suppliers)")
+def reset_weekly_scores(
+    db: Session = Depends(get_db),
+    _: CurrentUser = Depends(verify_access_token),
+):
+    """Deletes all WeeklyScore rows so you can re-upload with correct week dates."""
+    deleted = db.query(WeeklyScore).delete()
+    db.commit()
+    return {"deleted": deleted}

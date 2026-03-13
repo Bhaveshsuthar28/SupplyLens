@@ -15,6 +15,7 @@ export function UploadProvider({ children }) {
   const [result, setResult]     = useState(null);
   const [error, setError]       = useState(null);
   const [jobId, setJobId]       = useState(null);
+  const [weekDate, setWeekDate] = useState(() => new Date().toISOString().slice(0, 10));
 
   const pollRef = useRef(null);
 
@@ -99,6 +100,7 @@ export function UploadProvider({ children }) {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("week_date", weekDate);
       const data = await api.upload("/api/v1/upload/", formData);
       // API returns {job_id, status: "processing"} immediately
       setJobId(data.job_id);
@@ -110,7 +112,7 @@ export function UploadProvider({ children }) {
   };
 
   return (
-    <UploadContext.Provider value={{ file, uploading, jobId, result, error, selectFile, startUpload, reset }}>
+    <UploadContext.Provider value={{ file, uploading, jobId, result, error, weekDate, setWeekDate, selectFile, startUpload, reset }}>
       {children}
     </UploadContext.Provider>
   );

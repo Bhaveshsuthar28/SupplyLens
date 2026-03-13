@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useUser } from "@clerk/react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import {
   BarChart3, Users, Settings, LayoutDashboard,
-  Upload, LogOut, ChevronRight, X,
+  Upload, LogOut, ChevronRight, X, Sun, Moon,
 } from "lucide-react";
 import { useAuthContext } from "@/context/AuthContext";
 import { useUploadContext } from "@/context/UploadContext";
@@ -45,6 +46,7 @@ export function AppSidebar({ open, onClose }) {
   const { user: clerkUser } = useUser();
   const [showConfirm, setShowConfirm] = useState(false);
   const { uploading, file } = useUploadContext();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const displayName = clerkUser?.fullName || clerkUser?.firstName || authUser?.email?.split("@")[0] || "User";
   const email = clerkUser?.primaryEmailAddress?.emailAddress || authUser?.email || "";
@@ -145,13 +147,20 @@ export function AppSidebar({ open, onClose }) {
           <ChevronRight className="w-3.5 h-3.5 text-sidebar-foreground/40 shrink-0 group-hover:text-sidebar-foreground/70 transition-colors" />
         </Link>
 
-        <div className="px-4 pb-4 pt-1">
+        <div className="px-4 pb-4 pt-1 flex items-center gap-2">
           <button
             onClick={() => setShowConfirm(true)}
-            className="flex items-center gap-2 w-full text-sm font-sans text-sidebar-foreground/60 hover:text-destructive hover:bg-sidebar-accent px-2 py-1.5 rounded transition-colors"
+            className="flex items-center gap-2 flex-1 text-sm font-sans text-sidebar-foreground/60 hover:text-destructive hover:bg-sidebar-accent px-2 py-1.5 rounded transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Sign Out
+          </button>
+          <button
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="p-1.5 rounded hover:bg-sidebar-accent transition-colors text-sidebar-foreground/60 hover:text-sidebar-foreground"
+            title={resolvedTheme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {resolvedTheme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
         </div>
       </div>
