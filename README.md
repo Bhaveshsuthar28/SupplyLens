@@ -275,39 +275,11 @@ cd supply-lens
 
 #### 2. Download Sample Datasets
 
-The sample datasets are hosted on GitHub Releases to keep the repository lightweight.
+📊 **[Download Datasets (ZIP)](https://github.com/your-username/SupplyLens/releases/download/v1.0.0/SupplyLens-Datasets.zip)**
 
-**Option A: Automated Download (Recommended)**
+Extract the ZIP file and place all 4 Excel files in the `Dataset/` folder.
 
-On Windows (PowerShell):
-```powershell
-.\download-datasets.ps1
-```
-
-On Linux/Mac:
-```bash
-chmod +x download-datasets.sh
-./download-datasets.sh
-```
-
-**Option B: Manual Download**
-
-1. Go to the [Releases page](https://github.com/your-username/SupplyLens/releases)
-2. Download the latest release assets (4 Excel files)
-3. Place them in the `Dataset/` folder
-
-**Option C: Direct Download Links**
-
-```bash
-cd Dataset/
-# Download each file
-curl -LO https://github.com/your-username/SupplyLens/releases/download/v1.0.0/supplier_orders_week1_new.xlsx
-curl -LO https://github.com/your-username/SupplyLens/releases/download/v1.0.0/supplier_orders_week2_new.xlsx
-curl -LO https://github.com/your-username/SupplyLens/releases/download/v1.0.0/supplier_orders_week3_new.xlsx
-curl -LO https://github.com/your-username/SupplyLens/releases/download/v1.0.0/supplier_orders_week4_new.xlsx
-```
-
-> 📝 **Note:** For detailed dataset setup instructions, see [DATASET_SETUP.md](DATASET_SETUP.md)
+> See [DATASETS.md](DATASETS.md) for details
 
 #### 3. Frontend Setup
 
