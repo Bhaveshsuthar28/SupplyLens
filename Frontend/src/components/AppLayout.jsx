@@ -3,6 +3,9 @@ import { Outlet, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { AppSidebar } from "./AppSidebar";
 import { UploadProvider } from "@/context/UploadContext";
+import { useAuthContext } from "@/context/AuthContext";
+import { useUser } from "@clerk/react";
+import SignOutConfirm from "@/components/SignOutConfirm";
 
 const PAGE_TITLES = {
   "/dashboard": "Analytics Dashboard",
@@ -37,6 +40,11 @@ function MobileTopBar({ onMenuClick }) {
 
 export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const { user: authUser, logout } = useAuthContext();
+  const { user: clerkUser } = useUser();
+
+  const email = clerkUser?.primaryEmailAddress?.emailAddress || authUser?.email || "";
 
   return (
     <UploadProvider>
@@ -51,11 +59,24 @@ export function AppLayout() {
           />
         )}
 
-        <AppSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <AppSidebar 
+          open={sidebarOpen} 
+          onClose={() => setSidebarOpen(false)}
+          showConfirm={showConfirm}
+          setShowConfirm={setShowConfirm}
+        />
 
         <main className="md:ml-60 pt-14 md:pt-0">
           <Outlet />
         </main>
+
+        {/* Sign out confirmation modal - rendered outside sidebar */}
+        <SignOutConfirm
+          open={showConfirm}
+          displayName={email}
+          onConfirm={() => { logout(); setShowConfirm(false); }}
+          onCancel={() => setShowConfirm(false)}
+        />
       </div>
     </UploadProvider>
   );

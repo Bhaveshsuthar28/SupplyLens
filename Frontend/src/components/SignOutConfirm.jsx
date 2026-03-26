@@ -18,30 +18,30 @@ export default function SignOutConfirm({ open, displayName, onConfirm, onCancel 
       onClick={onCancel}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-sm relative"
+        className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm relative"
         onClick={(e) => e.stopPropagation()}
         style={{ animation: "scaleIn 0.18s cubic-bezier(0.34,1.56,0.64,1) forwards" }}
       >
         {/* Close button */}
         <button
           onClick={onCancel}
-          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 flex items-center justify-center transition-colors"
         >
-          <X className="w-4 h-4 text-gray-500" />
+          <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
         </button>
 
         {/* Header */}
-        <div className="px-6 pt-6 pb-5 border-b border-gray-100">
+        <div className="px-6 pt-6 pb-5 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
-              <LogOut className="w-5 h-5 text-red-500" />
+            <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950 flex items-center justify-center flex-shrink-0">
+              <LogOut className="w-5 h-5 text-red-500 dark:text-red-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900">Sign out</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Sign out</h3>
           </div>
-          <p className="text-sm text-gray-500 leading-relaxed">
+          <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
             Are you sure you want to sign out?
             {displayName && (
-              <> You are signed in as <span className="font-medium text-gray-700">{displayName}</span>.</>
+              <> You are signed in as <span className="font-medium text-gray-700 dark:text-gray-300">{displayName}</span>.</>
             )}
           </p>
         </div>
@@ -50,7 +50,7 @@ export default function SignOutConfirm({ open, displayName, onConfirm, onCancel 
         <div className="flex gap-3 px-6 py-4">
           <button
             onClick={onCancel}
-            className="flex-1 h-10 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 h-10 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
           >
             Cancel
           </button>

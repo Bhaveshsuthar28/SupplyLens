@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useUser } from "@clerk/react";
 import { useTheme } from "next-themes";
@@ -9,7 +8,6 @@ import {
 } from "lucide-react";
 import { useAuthContext } from "@/context/AuthContext";
 import { useUploadContext } from "@/context/UploadContext";
-import SignOutConfirm from "@/components/SignOutConfirm";
 
 const navItems = [
   { to: "/dashboard",  label: "Analytics Dashboard",    icon: LayoutDashboard },
@@ -40,11 +38,10 @@ function SidebarAvatar({ imageUrl, name }) {
   );
 }
 
-export function AppSidebar({ open, onClose }) {
+export function AppSidebar({ open, onClose, showConfirm, setShowConfirm }) {
   const location = useLocation();
   const { user: authUser, logout } = useAuthContext();
   const { user: clerkUser } = useUser();
-  const [showConfirm, setShowConfirm] = useState(false);
   const { uploading, file } = useUploadContext();
   const { resolvedTheme, setTheme } = useTheme();
 
@@ -164,13 +161,6 @@ export function AppSidebar({ open, onClose }) {
           </button>
         </div>
       </div>
-
-      <SignOutConfirm
-        open={showConfirm}
-        displayName={email}
-        onConfirm={() => { logout(); setShowConfirm(false); }}
-        onCancel={() => setShowConfirm(false)}
-      />
     </aside>
   );
 }

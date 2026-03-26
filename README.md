@@ -273,7 +273,43 @@ git clone https://github.com/your-username/supply-lens.git
 cd supply-lens
 ```
 
-#### 2. Frontend Setup
+#### 2. Download Sample Datasets
+
+The sample datasets are hosted on GitHub Releases to keep the repository lightweight.
+
+**Option A: Automated Download (Recommended)**
+
+On Windows (PowerShell):
+```powershell
+.\download-datasets.ps1
+```
+
+On Linux/Mac:
+```bash
+chmod +x download-datasets.sh
+./download-datasets.sh
+```
+
+**Option B: Manual Download**
+
+1. Go to the [Releases page](https://github.com/your-username/SupplyLens/releases)
+2. Download the latest release assets (4 Excel files)
+3. Place them in the `Dataset/` folder
+
+**Option C: Direct Download Links**
+
+```bash
+cd Dataset/
+# Download each file
+curl -LO https://github.com/your-username/SupplyLens/releases/download/v1.0.0/supplier_orders_week1_new.xlsx
+curl -LO https://github.com/your-username/SupplyLens/releases/download/v1.0.0/supplier_orders_week2_new.xlsx
+curl -LO https://github.com/your-username/SupplyLens/releases/download/v1.0.0/supplier_orders_week3_new.xlsx
+curl -LO https://github.com/your-username/SupplyLens/releases/download/v1.0.0/supplier_orders_week4_new.xlsx
+```
+
+> 📝 **Note:** For detailed dataset setup instructions, see [DATASET_SETUP.md](DATASET_SETUP.md)
+
+#### 3. Frontend Setup
 
 ```bash
 cd Frontend
@@ -296,7 +332,7 @@ npm run dev
 
 Frontend runs at **http://localhost:5173**
 
-#### 3. Backend Setup
+#### 4. Backend Setup
 
 ```bash
 cd ../Backend
